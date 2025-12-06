@@ -228,7 +228,7 @@ export default function PriceChartingTool() {
         // If no valid price found from specific click (or clicked 0), fallback to default heuristic
         if (price === 0) {
              const priceCells = row.querySelectorAll("td.price");
-             // Default to loose if available, else CIB
+             // Default to loose if available, else CIB, else New
              if (priceCells.length > 0) {
                 // First price column is typically Loose/Used
                 const p1Text = row.querySelector("td.used_price")?.textContent || priceCells[0].textContent || "";
@@ -244,6 +244,14 @@ export default function PriceChartingTool() {
                     if (p2 > 0) {
                         price = p2;
                         condition = 'cib';
+                    } else {
+                        // Try New
+                        const p3Text = row.querySelector("td.new_price")?.textContent || (priceCells.length > 2 ? priceCells[2].textContent : "") || "";
+                        const p3 = parsePrice(p3Text);
+                        if (p3 > 0) {
+                            price = p3;
+                            condition = 'new';
+                        }
                     }
                 }
             }
@@ -386,7 +394,7 @@ export default function PriceChartingTool() {
                         <Card key={item.id} className="p-3 relative group">
                             <div className="flex justify-between items-start gap-2">
                                 <div className="min-w-0">
-                                    <a href={item.url} target="_blank" rel="noreferrer" className="font-medium text-sm hover:underline truncate block">
+                                    <a href={item.url} target="_blank" rel="noreferrer" className="font-medium text-sm hover:underline line-clamp-2 block" title={item.title}>
                                         {item.title}
                                     </a>
                                     <div className="text-xs text-muted-foreground">
@@ -400,7 +408,7 @@ export default function PriceChartingTool() {
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-background shadow-sm border opacity-0 group-hover:opacity-100 transition-opacity"
+                                className="absolute top-1 right-1 h-6 w-6 rounded-full bg-background shadow-sm border opacity-0 group-hover:opacity-100 transition-opacity"
                                 onClick={() => removeItem(item.id)}
                             >
                                 <X className="h-3 w-3" />

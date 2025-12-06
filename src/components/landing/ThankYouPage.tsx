@@ -381,11 +381,12 @@ export default function ThankYouPage() {
               className="w-20 h-20 rounded-lg mx-auto mb-6"
             />
             <h1 className="text-5xl font-bold text-slate-900 dark:text-white mb-4">
-              Thank You for Installing Scout!
+              Thank You for Installing Volt's Chrome Extension!
             </h1>
             <p className="text-xl text-slate-600 dark:text-slate-400 mb-8">
-              We're excited to have you on board! Scout is now ready to enhance
-              your browsing experience with powerful productivity tools.
+              We're excited to have you on board! Volt's Chrome Extension is now
+              ready to enhance your browsing experience with powerful
+              productivity tools.
             </p>
           </div>
 
@@ -393,12 +394,12 @@ export default function ThankYouPage() {
             <div className="flex items-center justify-center gap-3 mb-4">
               <Pin className="w-8 h-8 text-green-600 dark:text-green-400" />
               <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
-                Please Pin Scout to Your Toolbar
+                Please Pin Volt's Chrome Extension to Your Toolbar
               </h2>
             </div>
             <p className="text-lg text-slate-600 dark:text-slate-400 mb-6">
-              For quick access to all Scout features, we recommend pinning the
-              extension to your Chrome toolbar:
+              For quick access to all Volt's Chrome Extension features, we
+              recommend pinning the extension to your Chrome toolbar:
             </p>
             <div className="bg-white dark:bg-slate-800 rounded-lg p-6 text-left max-w-2xl mx-auto">
               <ol className="space-y-3">
@@ -416,7 +417,8 @@ export default function ThankYouPage() {
                     2
                   </span>
                   <span className="text-slate-700 dark:text-slate-300">
-                    Find <strong>Scout</strong> in the list of extensions
+                    Find <strong>Volt's Chrome Extension</strong> in the list of
+                    extensions
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
@@ -424,7 +426,8 @@ export default function ThankYouPage() {
                     3
                   </span>
                   <span className="text-slate-700 dark:text-slate-300">
-                    Click the <strong>pin icon</strong> next to Scout
+                    Click the <strong>pin icon</strong> next to Volt's Chrome
+                    Extension
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
@@ -432,8 +435,8 @@ export default function ThankYouPage() {
                     4
                   </span>
                   <span className="text-slate-700 dark:text-slate-300">
-                    The Scout icon will now appear in your toolbar for quick
-                    access!
+                    Volt's Chrome Extension icon will now appear in your toolbar
+                    for quick access!
                   </span>
                 </li>
               </ol>
@@ -459,13 +462,13 @@ export default function ThankYouPage() {
 
           <div className="flex items-center justify-center">
             <a
-              href="https://github.com/JuanQuenga/scout"
+              href="https://github.com/JuanQuenga/volt-chrome-extension"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
             >
               <Github className="w-4 h-4" />
-              <span>Contribute to Scout on GitHub</span>
+              <span>Contribute on GitHub</span>
               <ExternalLink className="w-3 h-3" />
             </a>
           </div>
@@ -477,7 +480,7 @@ export default function ThankYouPage() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-slate-900 dark:text-white mb-4">
-              Scout Features
+              Volt's Chrome Extension Features
             </h2>
             <p className="text-xl text-slate-600 dark:text-slate-400 max-w-3xl mx-auto">
               Everything you need to enhance your browsing and research workflow
@@ -617,16 +620,16 @@ export default function ThankYouPage() {
             <div className="flex items-center justify-center gap-3 mb-4">
               <Pin className="w-8 h-8 text-green-600 dark:text-green-400" />
               <h2 className="text-4xl font-bold text-slate-900 dark:text-white">
-                Pin Scout for Easy Access
+                Pin Volt's Chrome Extension for Easy Access
               </h2>
             </div>
             <p className="text-xl text-slate-600 dark:text-slate-400 mb-8">
-              Pinning Scout to your toolbar gives you one-click access to all
-              features
+              Pinning Volt's Chrome Extension to your toolbar gives you
+              one-click access to all features
             </p>
             <div className="bg-white dark:bg-slate-700 rounded-lg p-8 text-left max-w-2xl mx-auto mb-8">
               <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-4">
-                Why Pin Scout?
+                Why Pin Volt's Chrome Extension?
               </h3>
               <ul className="space-y-3 mb-6">
                 <li className="flex items-start gap-3">
@@ -638,18 +641,19 @@ export default function ThankYouPage() {
                 <li className="flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
                   <span className="text-slate-700 dark:text-slate-300">
-                    Visual indicator that Scout is active and ready to use
+                    Visual indicator that Volt's Chrome Extension is active and
+                    ready to use
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
                   <span className="text-slate-700 dark:text-slate-300">
-                    One-click access to controller testing and settings
+                    One-click access to all features and tools
                   </span>
                 </li>
               </ul>
               <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-4">
-                How to Pin Scout:
+                How to Pin Volt's Chrome Extension:
               </h3>
               <ol className="space-y-3">
                 <li className="flex items-start gap-3">
@@ -665,7 +669,7 @@ export default function ThankYouPage() {
                     2
                   </span>
                   <span className="text-slate-700 dark:text-slate-300">
-                    Find Scout in the extensions list
+                    Find Volt's Chrome Extension in the extensions list
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
@@ -673,7 +677,7 @@ export default function ThankYouPage() {
                     3
                   </span>
                   <span className="text-slate-700 dark:text-slate-300">
-                    Click the pin icon next to Scout
+                    Click the pin icon next to Volt's Chrome Extension
                   </span>
                 </li>
               </ol>
@@ -700,15 +704,15 @@ export default function ThankYouPage() {
             <div className="flex items-center gap-3">
               <img
                 src="/assets/icons/dog.png"
-                alt="Scout"
+                alt="Volt's Chrome Extension"
                 className="w-8 h-8 rounded-lg"
               />
               <div>
                 <p className="text-sm font-medium text-slate-900 dark:text-white">
-                  Scout
+                  Volt Chrome Extension
                 </p>
                 <p className="text-xs text-slate-600 dark:text-slate-400">
-                  Versatile Chrome Extension
+                  Powerful Chrome Extension
                   {version && (
                     <span className="ml-2 px-2 py-0.5 bg-slate-100 dark:bg-slate-700 rounded text-xs">
                       v{version}
@@ -719,7 +723,7 @@ export default function ThankYouPage() {
             </div>
             <div className="flex items-center gap-6">
               <a
-                href="https://github.com/JuanQuenga/scout"
+                href="https://github.com/JuanQuenga/volt-chrome-extension"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"

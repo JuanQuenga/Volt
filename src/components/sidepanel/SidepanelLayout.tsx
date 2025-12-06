@@ -1,6 +1,8 @@
 import React from "react";
 import { cn } from "../../lib/utils";
 
+import { ScrollArea } from "../ui/scroll-area";
+
 interface SidepanelLayoutProps {
   children: React.ReactNode;
   title?: string;
@@ -32,9 +34,9 @@ export default function SidepanelLayout({
       )} */}
 
       {/* Content */}
-      <div className={cn("flex-1 overflow-y-auto", contentClassName)}>
+      <ScrollArea className={cn("flex-1", contentClassName)}>
         {children}
-      </div>
+      </ScrollArea>
     </div>
   );
 }

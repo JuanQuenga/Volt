@@ -131,49 +131,51 @@ export default function UnifiedSidepanel() {
 
   return (
     <div className="h-full w-full flex flex-col bg-background">
-      {/* Main content */}
-      <div className="flex-1 overflow-auto">
-        <div className="p-2 pb-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                type="button"
-                className="flex w-full items-center justify-between rounded-lg border border-input bg-card px-4 py-2 text-left text-lg font-semibold shadow-sm transition focus:outline-none focus:ring-2 focus:ring-primary/40 hover:bg-accent/40"
-                ref={triggerRef}
-              >
-                <span className="flex items-center gap-2">
-                  <activeToolMeta.icon className="h-5 w-5" />
-                  {activeToolMeta.label}
-                </span>
-                <ChevronDown className="h-4 w-4 text-muted-foreground" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align="start"
-              sideOffset={8}
-              className="p-1"
-              style={{
-                width: dropdownWidth ? `${dropdownWidth}px` : undefined,
-              }}
+      {/* Fixed Header */}
+      <div className="flex-none p-2 pb-2 border-b bg-background z-10">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              className="flex w-full items-center justify-between rounded-lg border border-input bg-card px-4 py-2 text-left text-lg font-semibold shadow-sm transition focus:outline-none focus:ring-2 focus:ring-primary/40 hover:bg-accent/40"
+              ref={triggerRef}
             >
-              {tools.map((tool) => (
-                <DropdownMenuItem
-                  key={tool.id}
-                  onSelect={() => handleToolChange(tool.id)}
-                  className={cn(
-                    "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                    activeTool === tool.id
-                      ? "bg-primary text-primary-foreground"
-                      : "text-foreground hover:bg-accent hover:text-accent-foreground"
-                  )}
-                >
-                  <tool.icon className="h-4 w-4" />
-                  <span>{tool.label}</span>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+              <span className="flex items-center gap-2">
+                <activeToolMeta.icon className="h-5 w-5" />
+                {activeToolMeta.label}
+              </span>
+              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            align="start"
+            sideOffset={8}
+            className="p-1"
+            style={{
+              width: dropdownWidth ? `${dropdownWidth}px` : undefined,
+            }}
+          >
+            {tools.map((tool) => (
+              <DropdownMenuItem
+                key={tool.id}
+                onSelect={() => handleToolChange(tool.id)}
+                className={cn(
+                  "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                  activeTool === tool.id
+                    ? "bg-primary text-primary-foreground"
+                    : "text-foreground hover:bg-accent hover:text-accent-foreground"
+                )}
+              >
+                <tool.icon className="h-4 w-4" />
+                <span>{tool.label}</span>
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
+      {/* Main content - Flex 1 to take remaining space, overflow hidden to prevent double scrollbars */}
+      <div className="flex-1 overflow-hidden">
         <ActiveComponent
           onClose={() => handleToolChange("controller-testing")}
         />
