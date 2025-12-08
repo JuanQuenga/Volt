@@ -338,6 +338,10 @@ export default defineContentScript({
         const currentUrl = new URL(window.location.href);
         currentUrl.searchParams.set("LH_ItemCondition", "1000");
         window.location.href = currentUrl.toString();
+      } else if (action === "filter-broken") {
+        const currentUrl = new URL(window.location.href);
+        currentUrl.searchParams.set("LH_ItemCondition", "7000");
+        window.location.href = currentUrl.toString();
       } else if (action === "filter-all") {
         const currentUrl = new URL(window.location.href);
         currentUrl.searchParams.delete("LH_ItemCondition");
@@ -363,19 +367,30 @@ export default defineContentScript({
         return container;
       }
 
-      // Fallback to old behavior if the element is not found
+      // Fallback: Insert before the results river
       const river = document.getElementById("srp-river-results");
-      if (!river || !river.parentElement) {
-        log("✗ Cannot insert summary - no suitable parent found");
-        return null;
+      if (river && river.parentElement) {
+        container = document.createElement("section");
+        container.id = SUMMARY_ID;
+        container.addEventListener("click", handleContainerClick);
+        river.parentElement.insertBefore(container, river);
+        log("✓ Summary container inserted before #srp-river-results (fallback)");
+        return container;
+      }
+      
+      // Last resort: Insert at the top of the main content if possible
+      const main = document.getElementById("mainContent");
+      if (main) {
+         container = document.createElement("section");
+         container.id = SUMMARY_ID;
+         container.addEventListener("click", handleContainerClick);
+         main.prepend(container);
+         log("✓ Summary container inserted into #mainContent (last resort)");
+         return container;
       }
 
-      container = document.createElement("section");
-      container.id = SUMMARY_ID;
-      container.addEventListener("click", handleContainerClick);
-      river.parentElement.insertBefore(container, river);
-      log("✓ Summary container inserted before #srp-river-results (fallback)");
-      return container;
+      log("✗ Cannot insert summary - no suitable parent found");
+      return null;
     };
 
     const renderSummary = async () => {
@@ -432,7 +447,7 @@ export default defineContentScript({
         if (conditionText === "All Conditions") {
           contentHtml += `
             <div class="volt-ebay-summary__links">
-              Want more accuracy? Filter by <a data-action="filter-used">Used</a> or <a data-action="filter-new">New</a>.
+              Want more accuracy? Filter by <a data-action="filter-used">Used</a>, <a data-action="filter-new">New</a>, or <a data-action="filter-broken">For Parts</a>.
             </div>
           `;
         }
@@ -492,14 +507,14 @@ export default defineContentScript({
     const observer = new MutationObserver(() => {
       if (updateQueued) return;
       
-      // Debounce updates
+      // Debounce updates slightly but much faster than before
       updateQueued = true;
-      setTimeout(() => {
-        // If we already have a summary, check if it's still in DOM
+      // Use requestAnimationFrame for smoother UI updates instead of arbitrary timeout
+      requestAnimationFrame(() => {
         if (!document.getElementById(SUMMARY_ID)) {
           renderSummary();
         }
-      }, 1000);
+      });
     });
 
     observer.observe(document.body, {
@@ -507,7 +522,7 @@ export default defineContentScript({
       subtree: true,
     });
 
-    // Initial render
-    setTimeout(renderSummary, 1500);
+    // Initial render - try immediately
+    renderSummary();
   },
 });

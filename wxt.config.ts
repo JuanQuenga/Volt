@@ -19,6 +19,8 @@ export default defineConfig({
         matches: ["<all_urls>"],
         js: ["context-menu.js"],
         run_at: "document_idle",
+        all_frames: true,
+        match_about_blank: true,
       },
       {
         matches: ["<all_urls>"],

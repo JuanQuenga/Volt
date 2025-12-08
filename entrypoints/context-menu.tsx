@@ -31,12 +31,13 @@ import {
 export default defineContentScript({
   matches: ["<all_urls>"],
   runAt: "document_idle",
-  allFrames: false,
+  allFrames: true,
+  matchAboutBlank: true,
   main() {
-    if (window.top !== window) return;
-
-    // Initialize side panel context early
-    initializeSidePanelContext();
+    // Initialize side panel context early (only in top frame to avoid spamming from iframes)
+    if (window.top === window) {
+      initializeSidePanelContext();
+    }
 
     const log = (...args) => {
       try {
@@ -515,7 +516,7 @@ export default defineContentScript({
 
     const styles = () => `
       :host{all:initial}
-      .scout-cm-root{position:fixed;inset:0;z-index:2147483646}
+      .scout-cm-root{position:fixed;inset:0;z-index:2147483647}
       .overlay{position:fixed;inset:0;background:transparent}
       .menu{position:absolute;min-width:240px;max-width:320px;background:#fff;color:#111827;border:1px solid #e5e7eb;border-radius:10px;box-shadow:0 20px 45px rgba(0,0,0,.18);overflow:hidden;font-family:ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif}
       .hdr{padding:8px 12px;border-bottom:1px solid #f3f4f6;font:600 12px/1 ui-sans-serif, system-ui, -apple-system;color:#6b7280;background:#fafafa;display:flex;justify-content:space-between;align-items:center}
@@ -552,7 +553,7 @@ export default defineContentScript({
       host.style.all = "initial";
       host.style.position = "fixed";
       host.style.inset = "0";
-      host.style.zIndex = "2147483646";
+      host.style.zIndex = "2147483647";
       host.style.pointerEvents = "none"; // Initially hidden
       shadow = host.attachShadow({ mode: "open" });
       const style = document.createElement("style");
