@@ -79,8 +79,8 @@ export default defineBackground({
 
     function configurePanelForTab(tabId) {
       try {
+        // Configure globally instead of per-tab to keep sidepanel open/persistent across tab switches
         chrome.sidePanel.setOptions({
-          tabId,
           enabled: true,
           path: PANEL_PAGE_PATH,
         });

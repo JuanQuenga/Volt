@@ -33,7 +33,7 @@ export default defineConfig({
           "https://admin.shopify.com/*",
           "https://*.myshopify.com/admin/*",
         ],
-        js: ["shopify-guardrails.js"],
+        js: ["shopify-guardrails.js", "shopify-product-search.js"],
         run_at: "document_idle",
       },
       {

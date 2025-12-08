@@ -10,6 +10,7 @@ import {
   Shapes,
   HelpCircle,
   LineChart,
+  Search,
 } from "lucide-react";
 
 export type SidepanelToolId =
@@ -21,7 +22,8 @@ export type SidepanelToolId =
   | "ebay-taxonomy-tool"
   | "buying-guide"
   | "shopify-help"
-  | "price-charting-tool";
+  | "price-charting-tool"
+  | "shopify-product-search";
 
 export interface SidepanelToolMetadata {
   id: SidepanelToolId;
@@ -84,6 +86,12 @@ export const SIDEPANEL_TOOLS: SidepanelToolMetadata[] = [
     label: "Shopify Help",
     description: "View Shopify tags and sales channels guide",
     icon: HelpCircle,
+  },
+  {
+    id: "shopify-product-search",
+    label: "Shopify Search",
+    description: "Search Shopify products and inventory",
+    icon: Search,
   },
 ];
 
