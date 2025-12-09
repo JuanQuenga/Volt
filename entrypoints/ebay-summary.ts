@@ -151,6 +151,29 @@ export default defineContentScript({
           color: #166534; /* Green-800 */
         }
 
+        /* Tooltip styles */
+        #${SUMMARY_ID} [data-tooltip] {
+          position: relative;
+        }
+        #${SUMMARY_ID} [data-tooltip]:hover::after {
+          content: attr(data-tooltip);
+          position: absolute;
+          bottom: 100%;
+          left: 50%;
+          transform: translateX(-50%);
+          margin-bottom: 8px;
+          padding: 4px 8px;
+          background: #0f172a;
+          color: #f8fafc;
+          border-radius: 4px;
+          font-size: 12px;
+          font-weight: 500;
+          white-space: nowrap;
+          z-index: 20;
+          pointer-events: none;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
         #${SUMMARY_ID} .volt-ebay-summary__dismiss {
           position: absolute;
           top: 12px;
@@ -199,29 +222,6 @@ export default defineContentScript({
           color: #2563eb;
         }
         
-        /* Tooltip styles */
-        [data-tooltip] {
-          position: relative;
-        }
-        [data-tooltip]:hover::after {
-          content: attr(data-tooltip);
-          position: absolute;
-          bottom: 100%;
-          left: 50%;
-          transform: translateX(-50%);
-          margin-bottom: 8px;
-          padding: 4px 8px;
-          background: #0f172a;
-          color: #f8fafc;
-          border-radius: 4px;
-          font-size: 12px;
-          font-weight: 500;
-          white-space: nowrap;
-          z-index: 20;
-          pointer-events: none;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
         #${SUMMARY_ID} .volt-ebay-summary__settings {
           position: absolute;
           top: 12px;
@@ -355,7 +355,22 @@ export default defineContentScript({
         return container;
       }
 
-      // Try to find the srp-controls__row-2 element
+      // 1. Try to find the carousel element (User request)
+      // We look for the specific class provided
+      const carouselAnswer = document.querySelector(".srp-river-answer--NAVIGATION_ANSWER_COLLAPSIBLE_CAROUSEL");
+      if (carouselAnswer && carouselAnswer.parentElement) {
+        container = document.createElement("section");
+        container.id = SUMMARY_ID;
+        container.addEventListener("click", handleContainerClick);
+        
+        // Insert AFTER the carousel answer
+        // If carouselAnswer is the last child, appendChild works too, but insertBefore(nextSibling) is safer
+        carouselAnswer.parentElement.insertBefore(container, carouselAnswer.nextSibling);
+        log("✓ Summary container inserted after .srp-river-answer--NAVIGATION_ANSWER_COLLAPSIBLE_CAROUSEL");
+        return container;
+      }
+
+      // 2. Try to find the srp-controls__row-2 element
       const srpControlsRow2 = document.querySelector(".srp-controls__row-2");
       if (srpControlsRow2) {
         container = document.createElement("section");
@@ -367,7 +382,7 @@ export default defineContentScript({
         return container;
       }
 
-      // Fallback: Insert before the results river
+      // 3. Fallback: Insert before the results river
       const river = document.getElementById("srp-river-results");
       if (river && river.parentElement) {
         container = document.createElement("section");
@@ -378,7 +393,7 @@ export default defineContentScript({
         return container;
       }
       
-      // Last resort: Insert at the top of the main content if possible
+      // 4. Last resort: Insert at the top of the main content if possible
       const main = document.getElementById("mainContent");
       if (main) {
          container = document.createElement("section");

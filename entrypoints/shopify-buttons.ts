@@ -23,11 +23,10 @@ export default defineContentScript({
       } catch (_) {}
     };
 
-    // Icons
-    const ICONS = {
-      ebay: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.41 11.58-9-5a1 1 0 0 0-1 0l-9 5a1 1 0 0 0 0 1.78l9 5a1 1 0 0 0 1 0l9-5a1 1 0 0 0 0-1.78Z"/><path d="m12 12 9-5"/><path d="m12 12-9-5"/><path d="M12 12v10"/></svg>',
-      pricecharting:
-        '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>',
+    // Logo URLs
+    const LOGO_URLS = {
+      ebay: chrome.runtime.getURL("assets/logos/ebay.svg"),
+      pricecharting: chrome.runtime.getURL("assets/logos/pricecharting.webp"),
     };
 
     // Styles
@@ -61,10 +60,11 @@ export default defineContentScript({
         flex-shrink: 0;
       }
 
-      .scout-action-tab svg {
-        width: 24px;
-        height: 24px;
-        filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1));
+      .scout-action-tab img {
+        width: 32px;
+        height: 32px;
+        object-fit: contain;
+        filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1)) brightness(0) invert(1);
       }
 
       .scout-action-tab:hover {
@@ -259,7 +259,10 @@ export default defineContentScript({
       const pcTab = document.createElement("div");
       pcTab.className = "scout-action-tab scout-tab-pricecharting";
       pcTab.id = "scout-tab-pc";
-      pcTab.innerHTML = ICONS.pricecharting;
+      const pcImg = document.createElement("img");
+      pcImg.src = LOGO_URLS.pricecharting;
+      pcImg.alt = "PriceCharting";
+      pcTab.appendChild(pcImg);
       pcTab.onclick = (e) => {
         e.stopPropagation();
         if (upcValue) {
@@ -276,13 +279,16 @@ export default defineContentScript({
       const ebayTab = document.createElement("div");
       ebayTab.className = "scout-action-tab scout-tab-ebay";
       ebayTab.id = "scout-tab-ebay";
-      ebayTab.innerHTML = ICONS.ebay;
+      const ebayImg = document.createElement("img");
+      ebayImg.src = LOGO_URLS.ebay;
+      ebayImg.alt = "eBay";
+      ebayTab.appendChild(ebayImg);
       ebayTab.onclick = (e) => {
         e.stopPropagation();
         if (mpnValue) {
           const url = `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(
             mpnValue
-          )}&LH_Sold=1&LH_Complete=1`;
+          )}&LH_Sold=1&LH_Complete=1&_dmd=2&rt=nc`;
           openSearchPopup(url);
         } else {
           alert("No MPN found");

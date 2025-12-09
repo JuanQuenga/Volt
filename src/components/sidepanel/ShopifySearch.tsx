@@ -1,8 +1,15 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
-import { Search, History, RefreshCw, AlertCircle, X, ExternalLink } from "lucide-react";
-import { Card } from "../ui/card";
+import {
+  Search,
+  History,
+  RefreshCw,
+  AlertCircle,
+  X,
+  ExternalLink,
+} from "lucide-react";
+
 import { ScrollArea } from "../ui/scroll-area";
 import SidepanelLayout from "./SidepanelLayout";
 
@@ -21,14 +28,17 @@ export default function ShopifySearch() {
   // Load store name and history
   useEffect(() => {
     if (chrome.storage && chrome.storage.local) {
-      chrome.storage.local.get(["scout_shopify_store", "scout_shopify_history"], (result) => {
-        if (result.scout_shopify_store) {
-          setStoreName(result.scout_shopify_store);
+      chrome.storage.local.get(
+        ["scout_shopify_store", "scout_shopify_history"],
+        (result) => {
+          if (result.scout_shopify_store) {
+            setStoreName(result.scout_shopify_store);
+          }
+          if (result.scout_shopify_history) {
+            setHistory(result.scout_shopify_history);
+          }
         }
-        if (result.scout_shopify_history) {
-          setHistory(result.scout_shopify_history);
-        }
-      });
+      );
     }
   }, []);
 
@@ -40,18 +50,20 @@ export default function ShopifySearch() {
           setStoreName(message.data.storeName);
           // Update storage if changed
           chrome.storage.local.get(["scout_shopify_store"], (res) => {
-              if (res.scout_shopify_store !== message.data.storeName) {
-                  chrome.storage.local.set({ scout_shopify_store: message.data.storeName });
-              }
+            if (res.scout_shopify_store !== message.data.storeName) {
+              chrome.storage.local.set({
+                scout_shopify_store: message.data.storeName,
+              });
+            }
           });
         }
-        
+
         // Update query input to match page if it's different and not currently being edited?
-        // Actually user wants "see the current query". 
+        // Actually user wants "see the current query".
         // We should probably update it, but maybe be careful about overriding typing.
         // For now, let's update it.
         if (typeof message.data.query === "string") {
-            setQuery(message.data.query);
+          setQuery(message.data.query);
         }
       }
     };
@@ -65,20 +77,23 @@ export default function ShopifySearch() {
     const handleTabChange = async () => {
       // Re-detect store and query from new active tab
       detectStore();
-      
+
       // Try to parse query from current URL
       try {
-        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        const [tab] = await chrome.tabs.query({
+          active: true,
+          currentWindow: true,
+        });
         if (tab?.url) {
-           const u = new URL(tab.url);
-           // Only update query if we are on a products page
-           if (u.pathname.includes("/products")) {
-               const q = u.searchParams.get("query");
-               if (q !== null) setQuery(q);
-               
-               // Update tracked tab to the current one
-               if (tab.id) setSearchTabId(tab.id);
-           }
+          const u = new URL(tab.url);
+          // Only update query if we are on a products page
+          if (u.pathname.includes("/products")) {
+            const q = u.searchParams.get("query");
+            if (q !== null) setQuery(q);
+
+            // Update tracked tab to the current one
+            if (tab.id) setSearchTabId(tab.id);
+          }
         }
       } catch (e) {
         // ignore
@@ -98,17 +113,20 @@ export default function ShopifySearch() {
 
   const addToHistory = (searchQuery: string) => {
     if (!searchQuery.trim()) return;
-    
+
     const newItem = { query: searchQuery, timestamp: Date.now() };
-    const newHistory = [newItem, ...history.filter(h => h.query !== searchQuery)].slice(0, 20); // Keep last 20
-    
+    const newHistory = [
+      newItem,
+      ...history.filter((h) => h.query !== searchQuery),
+    ].slice(0, 20); // Keep last 20
+
     setHistory(newHistory);
     chrome.storage.local.set({ scout_shopify_history: newHistory });
   };
 
   const removeFromHistory = (e: React.MouseEvent, itemQuery: string) => {
     e.stopPropagation();
-    const newHistory = history.filter(h => h.query !== itemQuery);
+    const newHistory = history.filter((h) => h.query !== itemQuery);
     setHistory(newHistory);
     chrome.storage.local.set({ scout_shopify_history: newHistory });
   };
@@ -116,7 +134,10 @@ export default function ShopifySearch() {
   const detectStore = async () => {
     setError(null);
     try {
-      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      const [tab] = await chrome.tabs.query({
+        active: true,
+        currentWindow: true,
+      });
       if (!tab?.url) throw new Error("No active tab found");
 
       const url = tab.url;
@@ -125,7 +146,7 @@ export default function ShopifySearch() {
         saveStoreName(unifiedMatch[1]);
         return;
       }
-      
+
       const legacyMatch = url.match(/([^/.]+)\.myshopify\.com/);
       if (legacyMatch && legacyMatch[1]) {
         saveStoreName(legacyMatch[1]);
@@ -143,12 +164,14 @@ export default function ShopifySearch() {
       setError("Please configure a Shopify store first.");
       return;
     }
-    
+
     setError(null);
     addToHistory(searchQuery);
 
     // Construct URL
-    const url = `https://admin.shopify.com/store/${storeName}/products?query=${encodeURIComponent(searchQuery)}&order=inventory_total%20desc`;
+    const url = `https://admin.shopify.com/store/${storeName}/products?query=${encodeURIComponent(
+      searchQuery
+    )}&order=inventory_total%20desc`;
 
     try {
       // Check if we have a tracked tab
@@ -163,19 +186,25 @@ export default function ShopifySearch() {
           // Tab closed, create new
         }
       }
-      
+
       // Check if current tab is a Shopify admin tab we can hijack
-      const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
-      if (activeTab?.url && activeTab.url.includes(`admin.shopify.com/store/${storeName}`)) {
-           await chrome.tabs.update(activeTab.id!, { url });
-           setSearchTabId(activeTab.id!);
-           return;
+      const [activeTab] = await chrome.tabs.query({
+        active: true,
+        currentWindow: true,
+      });
+      if (
+        activeTab?.url &&
+        activeTab.url.includes(`admin.shopify.com/store/${storeName}`)
+      ) {
+        await chrome.tabs.update(activeTab.id!, { url });
+        setSearchTabId(activeTab.id!);
+        return;
       }
 
       // Create new tab
       const tab = await chrome.tabs.create({ url, active: true });
       if (tab.id) {
-          setSearchTabId(tab.id);
+        setSearchTabId(tab.id);
       }
     } catch (err: any) {
       setError("Failed to open search tab.");
@@ -189,23 +218,34 @@ export default function ShopifySearch() {
 
   return (
     <SidepanelLayout title="Shopify Search">
-      <div className="flex flex-col h-full gap-4">
+      <div className="flex flex-col h-full gap-4 p-4">
         {/* Store Config */}
-        <div className="flex flex-col gap-2 p-4 border rounded-md bg-muted/20">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium truncate max-w-[200px]" title={storeName}>
-              Store: {storeName || "Not Set"}
-            </span>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={detectStore}
-              title="Detect store from current tab URL"
-            >
-              <RefreshCw className="h-4 w-4 mr-1" />
-              Detect
-            </Button>
+        <div className="flex items-center justify-between px-1">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 bg-green-100 dark:bg-green-900/30 rounded-md">
+              <RefreshCw className="h-4 w-4 text-green-600 dark:text-green-400" />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-xs text-muted-foreground">
+                Active Store
+              </span>
+              <span
+                className="text-sm font-medium truncate max-w-[200px]"
+                title={storeName}
+              >
+                {storeName || "Not Set"}
+              </span>
+            </div>
           </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={detectStore}
+            title="Detect store from current tab URL"
+            className="h-8"
+          >
+            Detect
+          </Button>
         </div>
 
         {/* Search */}
@@ -214,6 +254,7 @@ export default function ShopifySearch() {
             placeholder="Search products..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
+            className="bg-slate-50 dark:bg-slate-800"
           />
           <Button type="submit" disabled={!storeName}>
             <Search className="h-4 w-4" />
@@ -228,42 +269,44 @@ export default function ShopifySearch() {
         )}
 
         {/* History */}
-        <div className="flex-1 flex flex-col min-h-0">
-            <div className="flex items-center gap-2 pb-2 text-sm text-muted-foreground font-medium">
-                <History className="h-4 w-4" />
-                Previous Searches
-            </div>
-            
-            <ScrollArea className="flex-1 -mr-4 pr-4">
+        <div className="flex-1 flex flex-col min-h-0 pt-2">
+          <div className="flex items-center gap-2 pb-3 text-sm text-muted-foreground font-medium">
+            <History className="h-4 w-4" />
+            Previous Searches
+          </div>
+
+          <ScrollArea className="flex-1 -mr-4 pr-4">
             <div className="space-y-2 pb-4">
-                {history.length === 0 ? (
-                    <div className="text-sm text-muted-foreground text-center py-8">
-                        No search history yet.
-                    </div>
-                ) : (
-                    history.map((item, i) => (
-                    <Card
-                        key={i}
-                        className="p-3 cursor-pointer hover:bg-accent transition-colors flex items-center justify-between group"
-                        onClick={() => {
-                            setQuery(item.query);
-                            executeSearch(item.query);
-                        }}
+              {history.length === 0 ? (
+                <div className="text-sm text-muted-foreground text-center py-8">
+                  No search history yet.
+                </div>
+              ) : (
+                history.map((item, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center justify-between p-3 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors cursor-pointer group"
+                    onClick={() => {
+                      setQuery(item.query);
+                      executeSearch(item.query);
+                    }}
+                  >
+                    <span className="text-sm font-medium truncate">
+                      {item.query}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity text-slate-400 hover:text-red-600"
+                      onClick={(e) => removeFromHistory(e, item.query)}
                     >
-                        <span className="text-sm font-medium truncate">{item.query}</span>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                            onClick={(e) => removeFromHistory(e, item.query)}
-                        >
-                            <X className="h-3 w-3" />
-                        </Button>
-                    </Card>
-                    ))
-                )}
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ))
+              )}
             </div>
-            </ScrollArea>
+          </ScrollArea>
         </div>
       </div>
     </SidepanelLayout>
