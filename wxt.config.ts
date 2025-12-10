@@ -136,5 +136,8 @@ export default defineConfig({
         description: "Open Sidepanel (Quick Links Tab)",
       },
     },
+    chrome_url_overrides: {
+      newtab: "newtab.html",
+    },
   },
 } as any);

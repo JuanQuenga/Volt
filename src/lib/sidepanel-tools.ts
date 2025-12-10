@@ -11,6 +11,7 @@ import {
   HelpCircle,
   LineChart,
   Search,
+  LayoutList,
 } from "lucide-react";
 
 export type SidepanelToolId =
@@ -23,13 +24,15 @@ export type SidepanelToolId =
   | "buying-guide"
   | "shopify-help"
   | "price-charting-tool"
-  | "shopify-product-search";
+  | "shopify-product-search"
+  | "tabs-manager";
 
 export interface SidepanelToolMetadata {
   id: SidepanelToolId;
   label: string;
   description: string;
   icon: LucideIcon;
+  color?: string;
 }
 
 export const SIDEPANEL_TOOLS: SidepanelToolMetadata[] = [
@@ -92,6 +95,12 @@ export const SIDEPANEL_TOOLS: SidepanelToolMetadata[] = [
     label: "Shopify Search",
     description: "Search Shopify products and inventory",
     icon: Search,
+  },
+  {
+    id: "tabs-manager",
+    label: "Tabs Manager",
+    description: "View and manage open tabs",
+    icon: LayoutList,
   },
 ];
 

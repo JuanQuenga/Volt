@@ -24,6 +24,10 @@ const buttonIdMap: Record<SidepanelToolId, string> = {
   "ebay-sold-tool": "scout-tb-ebay-sold",
   "ebay-taxonomy-tool": "scout-tb-ebay-taxonomy",
   "buying-guide": "scout-tb-buying-guide",
+  "shopify-help": "scout-tb-shopify-help",
+  "price-charting-tool": "scout-tb-price-charting",
+  "shopify-product-search": "scout-tb-shopify-search",
+  "tabs-manager": "scout-tb-tabs-manager",
 };
 
 const TOOLBAR_TOOLS: ToolbarTool[] = SIDEPANEL_TOOLS.map((tool) => ({

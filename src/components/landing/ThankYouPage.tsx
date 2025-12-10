@@ -7,7 +7,6 @@ import {
   Keyboard,
   Search,
   ArrowRight,
-  Copy,
   CheckCircle,
   Github,
   TrendingUp,
@@ -21,6 +20,7 @@ import {
   X,
   Pin,
   ExternalLink,
+  Info,
 } from "lucide-react";
 import { Dialog, DialogContent } from "../ui/dialog";
 
@@ -68,7 +68,6 @@ export default function ThankYouPage() {
 
   const heroRef = useRef<HTMLDivElement>(null);
   const featuresRef = useRef<HTMLDivElement>(null);
-  const installRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Get extension version
@@ -90,7 +89,6 @@ export default function ThankYouPage() {
       const sections = [
         { ref: heroRef, name: "hero" },
         { ref: featuresRef, name: "features" },
-        { ref: installRef, name: "install" },
       ];
 
       for (const section of sections) {
@@ -113,7 +111,7 @@ export default function ThankYouPage() {
 
   const handleCopyLink = () => {
     const installUrl =
-      "https://chrome.google.com/webstore/detail/scout/your-extension-id";
+      "https://chromewebstore.google.com/detail/volt/bmgghhmlflbhlnomgnoodpidekpaaifk";
     navigator.clipboard.writeText(installUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -123,7 +121,6 @@ export default function ThankYouPage() {
     const sectionRef = {
       hero: heroRef,
       features: featuresRef,
-      install: installRef,
     }[sectionName];
 
     if (sectionRef?.current) {
@@ -164,9 +161,9 @@ export default function ThankYouPage() {
       image: "/assets/images/command-menu.png",
       icon: Command,
       howToUse: [
-        "Pin the Scout extension icon to your toolbar (or use CMD+Shift+K / CTRL+Shift+K).",
-        "Click the Scout extension icon to open the command menu instantly.",
-        "Type to filter through tabs, Scout Links, bookmarks, history, or search providers.",
+        "Pin the Volt extension icon to your toolbar (or use CMD+Shift+K / CTRL+Shift+K).",
+        "Click the Volt extension icon to open the command menu instantly.",
+        "Type to filter through tabs, quick links, bookmarks, history, or search providers.",
         "Use Tab or arrow keys to navigate, hit Enter to select, or type a trigger word (like 'ebay' + Tab) to search.",
       ],
       subsections: [
@@ -181,10 +178,6 @@ export default function ThankYouPage() {
                 "Amazon, Best Buy, eBay (sold listings), Home Depot, Lowe's, Menards, Micro Center, Price Charting",
             },
             {
-              title: "General & Media",
-              description: "Google, Scout Search, YouTube, GitHub, Twitter/X",
-            },
-            {
               title: "Product Data",
               description:
                 "UPC Item DB (barcode lookup), eBay Taxonomy API (category suggestions)",
@@ -192,7 +185,7 @@ export default function ThankYouPage() {
           ],
         },
         {
-          title: "Scout Links & Quick Navigation",
+          title: "Quick Links & Quick Navigation",
           description:
             "Access custom links from Google Sheets (30-min cache) with categories. Configure custom CSV URL in settings or download the template to create your own.",
         },
@@ -226,18 +219,16 @@ export default function ThankYouPage() {
     },
     {
       id: 4,
-      title: "eBay Price Summary",
+      title: "eBay Summary",
       description:
-        "Automatic price statistics displayed at the top of eBay sold listings pages. Get instant market insights without manual calculations.",
-      image: "/assets/images/ebay-price-summary.png",
-      icon: TrendingUp,
+        "Get instant context on eBay search pages with an inline summary showing whether you're viewing Sold or Active listings, plus current condition filters. Color-coded indicators help you quickly understand your search context.",
+      image: "/assets/images/ebay-summary.png",
+      icon: Info,
       features: [
-        "Displays average, median, high, and low sale prices automatically",
-        "Clickable metrics to jump to highest/lowest/latest sold items",
-        "Quick filter buttons to view only new or used condition items",
-        "Shows total item count for better market analysis",
-        "Dismissible per search session to reduce clutter",
-        "Toggle on/off in settings (enabled by default)",
+        "Inline summary banner appears automatically on eBay search result pages",
+        "Displays current listing type (Sold, Active, or Completed) and condition filters",
+        "Quick action to switch from Active to Sold listings with one click",
+        "Condition filter shortcuts: Switch between Used, New, or For Parts filters",
       ],
     },
     {
@@ -258,18 +249,14 @@ export default function ThankYouPage() {
     },
     {
       id: 6,
-      title: "Shopify Guardrails",
+      title: "Shopify Buttons",
       description:
-        "Automated validation checks for Shopify product pages to catch common errors before they cause problems.",
-      image: "/assets/images/shopify-guardrails.png",
+        "Quick action buttons to quickly view market pricing for products on eBay and PriceCharting.",
+      image: "/assets/images/shopify-buttons.png",
       icon: Shield,
       features: [
-        "Condition Mismatch Check: Validates eBay condition ID matches Shopify condition",
-        "Empty Google Fields Check: Alerts when required Google Shopping metafields are empty",
-        "Visual indicators: Red border for condition mismatches, orange for empty fields",
-        "Dismissible notifications with clear error descriptions",
-        "Both checks can be toggled independently in settings",
-        "Automatic refresh when settings are changed",
+        "PriceCharting button to quickly view prices via the UPC code.",
+        "eBay button to quickly view prices via the MPN code.",
       ],
     },
   ];
@@ -294,19 +281,18 @@ export default function ThankYouPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <img
-                src="/assets/icons/dog.png"
-                alt="Scout"
+                src="/assets/icons/logo.png"
+                alt="Volt"
                 className="w-8 h-8 rounded-lg"
               />
               <span className="font-semibold text-slate-900 dark:text-white">
-                Scout
+                Volt
               </span>
             </div>
             <div className="hidden md:flex items-center gap-6">
               {[
                 { name: "hero", label: "Home" },
                 { name: "features", label: "Features" },
-                { name: "install", label: "Pin Extension" },
               ].map((item) => (
                 <button
                   key={item.name}
@@ -342,7 +328,6 @@ export default function ThankYouPage() {
             {[
               { name: "hero", label: "Home" },
               { name: "features", label: "Features" },
-              { name: "install", label: "Pin Extension" },
             ].map((item) => (
               <button
                 key={item.name}
@@ -376,17 +361,17 @@ export default function ThankYouPage() {
         <div className="max-w-4xl mx-auto text-center">
           <div className="mb-8">
             <img
-              src="/assets/icons/dog.png"
-              alt="Scout"
+              src="/assets/icons/logo.png"
+              alt="Volt"
               className="w-20 h-20 rounded-lg mx-auto mb-6"
             />
             <h1 className="text-5xl font-bold text-slate-900 dark:text-white mb-4">
-              Thank You for Installing Volt's Chrome Extension!
+              Thank You for Installing Volt
             </h1>
             <p className="text-xl text-slate-600 dark:text-slate-400 mb-8">
               We're excited to have you on board! Volt's Chrome Extension is now
-              ready to enhance your browsing experience with powerful
-              productivity tools.
+              ready to enhance your workflow with powerful productivity tools
+              and features.
             </p>
           </div>
 
@@ -452,11 +437,13 @@ export default function ThankYouPage() {
               Explore Features
             </button>
             <button
-              onClick={() => handleNavClick("install")}
+              onClick={() =>
+                chrome.tabs.create({ url: "chrome://extensions/shortcuts" })
+              }
               className="px-8 py-4 bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-white rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors flex items-center gap-3 text-lg font-semibold"
             >
-              <Pin className="w-5 h-5" />
-              Pin Instructions
+              <Keyboard className="w-5 h-5" />
+              Customize Shortcuts
             </button>
           </div>
 
@@ -483,7 +470,7 @@ export default function ThankYouPage() {
               Volt's Chrome Extension Features
             </h2>
             <p className="text-xl text-slate-600 dark:text-slate-400 max-w-3xl mx-auto">
-              Everything you need to enhance your browsing and research workflow
+              Everything you need to enhance your workflow with our extension.
             </p>
           </div>
 
@@ -613,97 +600,13 @@ export default function ThankYouPage() {
         </div>
       </section>
 
-      {/* Pin Extension Section */}
-      <section ref={installRef} className="py-20 px-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-slate-100 dark:bg-slate-800 rounded-xl p-12 text-center">
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <Pin className="w-8 h-8 text-green-600 dark:text-green-400" />
-              <h2 className="text-4xl font-bold text-slate-900 dark:text-white">
-                Pin Volt's Chrome Extension for Easy Access
-              </h2>
-            </div>
-            <p className="text-xl text-slate-600 dark:text-slate-400 mb-8">
-              Pinning Volt's Chrome Extension to your toolbar gives you
-              one-click access to all features
-            </p>
-            <div className="bg-white dark:bg-slate-700 rounded-lg p-8 text-left max-w-2xl mx-auto mb-8">
-              <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-4">
-                Why Pin Volt's Chrome Extension?
-              </h3>
-              <ul className="space-y-3 mb-6">
-                <li className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
-                  <span className="text-slate-700 dark:text-slate-300">
-                    Quick access to the command menu with CMD+Shift+K
-                  </span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
-                  <span className="text-slate-700 dark:text-slate-300">
-                    Visual indicator that Volt's Chrome Extension is active and
-                    ready to use
-                  </span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
-                  <span className="text-slate-700 dark:text-slate-300">
-                    One-click access to all features and tools
-                  </span>
-                </li>
-              </ul>
-              <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-4">
-                How to Pin Volt's Chrome Extension:
-              </h3>
-              <ol className="space-y-3">
-                <li className="flex items-start gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full text-sm flex items-center justify-center font-medium">
-                    1
-                  </span>
-                  <span className="text-slate-700 dark:text-slate-300">
-                    Click the Extensions icon (puzzle piece) in Chrome toolbar
-                  </span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full text-sm flex items-center justify-center font-medium">
-                    2
-                  </span>
-                  <span className="text-slate-700 dark:text-slate-300">
-                    Find Volt's Chrome Extension in the extensions list
-                  </span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full text-sm flex items-center justify-center font-medium">
-                    3
-                  </span>
-                  <span className="text-slate-700 dark:text-slate-300">
-                    Click the pin icon next to Volt's Chrome Extension
-                  </span>
-                </li>
-              </ol>
-            </div>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <button
-                onClick={() =>
-                  chrome.tabs.create({ url: "chrome://extensions/shortcuts" })
-                }
-                className="px-8 py-4 bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-white rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors flex items-center gap-3 text-lg font-semibold"
-              >
-                <Keyboard className="w-5 h-5" />
-                Customize Shortcuts
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Footer */}
       <footer className="bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 py-8 px-6">
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <img
-                src="/assets/icons/dog.png"
+                src="/assets/icons/logo.png"
                 alt="Volt's Chrome Extension"
                 className="w-8 h-8 rounded-lg"
               />

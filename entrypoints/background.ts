@@ -938,6 +938,17 @@ export default defineBackground({
             sendResponse({ success: false, error: "No URL provided" });
           }
           return true;
+        case "UPDATE_CURRENT_TAB":
+          // Update the current tab's URL (for new tab override)
+          const updateTabUrl = message.url;
+          if (updateTabUrl && sender.tab?.id) {
+            chrome.tabs.update(sender.tab.id, { url: updateTabUrl }, (tab) => {
+              sendResponse({ success: true, tabId: tab?.id });
+            });
+          } else {
+            sendResponse({ success: false, error: "No URL or tab ID provided" });
+          }
+          return true;
         case "FETCH_CSV_LINKS":
           // Fetch CSV data (bypasses CORS in content scripts)
           const csvUrl = message.url;

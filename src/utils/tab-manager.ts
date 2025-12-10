@@ -78,6 +78,26 @@ export class TabManager {
   }
 
   /**
+   * Update the current tab's URL (for new tab override)
+   */
+  static async updateCurrentTab(url: string): Promise<void> {
+    console.log("[TabManager] Updating current tab:", url);
+    return new Promise((resolve) => {
+      chrome.runtime.sendMessage({ action: "UPDATE_CURRENT_TAB", url }, (response) => {
+        if (chrome.runtime.lastError) {
+          console.error(
+            "[TabManager] Error updating tab:",
+            chrome.runtime.lastError
+          );
+        } else {
+          console.log("[TabManager] Tab updated successfully:", response);
+        }
+        resolve();
+      });
+    });
+  }
+
+  /**
    * Filter tabs by search query
    */
   static filterTabs(tabs: TabInfo[], query: string): TabInfo[] {

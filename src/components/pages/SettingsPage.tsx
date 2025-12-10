@@ -41,9 +41,8 @@ interface CMDKSettings {
     searchUrl: string;
     color: string;
   }>;
-  shopifyGuardrails?: {
-    enableConditionCheck?: boolean;
-    enableGoogleFieldsCheck?: boolean;
+  shopifyButtons?: {
+    enabled?: boolean;
   };
   controllerTesting?: {
     lightThreshold?: number;
@@ -61,6 +60,9 @@ interface CMDKSettings {
     customUrl?: string;
   };
   contextMenu?: {
+    enabled?: boolean;
+  };
+  toolbar?: {
     enabled?: boolean;
   };
 }
@@ -101,9 +103,8 @@ const DEFAULT_SETTINGS: CMDKSettings = {
     microcenter: true,
   },
   customSearchProviders: [],
-  shopifyGuardrails: {
-    enableConditionCheck: true,
-    enableGoogleFieldsCheck: true,
+  shopifyButtons: {
+    enabled: true,
   },
   controllerTesting: {
     lightThreshold: 0.1,
@@ -121,6 +122,9 @@ const DEFAULT_SETTINGS: CMDKSettings = {
     customUrl: "",
   },
   contextMenu: {
+    enabled: true,
+  },
+  toolbar: {
     enabled: true,
   },
 };
@@ -152,9 +156,9 @@ const mergeSettings = (stored?: Partial<CMDKSettings>): CMDKSettings => {
     ...(stored.enabledSearchProviders || {}),
   };
 
-  const mergedShopifyGuardrails = {
-    ...(DEFAULT_SETTINGS.shopifyGuardrails || {}),
-    ...(stored.shopifyGuardrails || {}),
+  const mergedShopifyButtons = {
+    ...(DEFAULT_SETTINGS.shopifyButtons || {}),
+    ...(stored.shopifyButtons || {}),
   };
 
   const mergedControllerTesting = {
@@ -191,7 +195,7 @@ const mergeSettings = (stored?: Partial<CMDKSettings>): CMDKSettings => {
     customSearchProviders: stored.customSearchProviders
       ? [...stored.customSearchProviders]
       : [...DEFAULT_SETTINGS.customSearchProviders],
-    shopifyGuardrails: mergedShopifyGuardrails,
+    shopifyButtons: mergedShopifyButtons,
     controllerTesting: mergedControllerTesting,
     bookmarkFolderIds: stored.bookmarkFolderIds
       ? [...stored.bookmarkFolderIds]
@@ -200,6 +204,10 @@ const mergeSettings = (stored?: Partial<CMDKSettings>): CMDKSettings => {
     upcHighlighter: mergedUpcHighlighter,
     csvLinks: mergedCsvLinks,
     contextMenu: mergedContextMenu,
+    toolbar: {
+      ...(DEFAULT_SETTINGS.toolbar || {}),
+      ...(stored.toolbar || {}),
+    },
   };
 };
 
@@ -403,22 +411,15 @@ export default function SettingsPage() {
     });
   };
 
-  const handleToggleGuardrail = (type: "condition" | "googleFields") => {
-    const newGuardrails = {
-      ...settings.shopifyGuardrails,
-      enableConditionCheck:
-        type === "condition"
-          ? !settings.shopifyGuardrails?.enableConditionCheck
-          : settings.shopifyGuardrails?.enableConditionCheck ?? true,
-      enableGoogleFieldsCheck:
-        type === "googleFields"
-          ? !settings.shopifyGuardrails?.enableGoogleFieldsCheck
-          : settings.shopifyGuardrails?.enableGoogleFieldsCheck ?? true,
+  const handleToggleShopifyButtons = () => {
+    const newShopifyButtons = {
+      ...settings.shopifyButtons,
+      enabled: !settings.shopifyButtons?.enabled,
     };
 
     const newSettings = {
       ...settings,
-      shopifyGuardrails: newGuardrails,
+      shopifyButtons: newShopifyButtons,
     };
     setSettings(newSettings);
 
@@ -433,8 +434,8 @@ export default function SettingsPage() {
           if (tab.id) {
             chrome.tabs
               .sendMessage(tab.id, {
-                action: "guardrails-settings-changed",
-                settings: newGuardrails,
+                action: "shopify-buttons-settings-changed",
+                enabled: newShopifyButtons.enabled,
               })
               .catch(() => {
                 // Ignore errors for tabs that don't have the content script
@@ -464,25 +465,6 @@ export default function SettingsPage() {
     const newSettings = {
       ...settings,
       controllerTesting: newThresholds,
-    };
-    setSettings(newSettings);
-
-    // Auto-save
-    chrome.storage.sync.set({ cmdkSettings: newSettings }, () => {
-      setIsSaved(true);
-      setTimeout(() => setIsSaved(false), 2000);
-    });
-  };
-
-  const handleToggleControllerAutoStart = () => {
-    const newControllerTesting = {
-      ...settings.controllerTesting,
-      autoStart: !settings.controllerTesting?.autoStart,
-    };
-
-    const newSettings = {
-      ...settings,
-      controllerTesting: newControllerTesting,
     };
     setSettings(newSettings);
 
@@ -621,6 +603,41 @@ export default function SettingsPage() {
               .sendMessage(tab.id, {
                 action: "context-menu-settings-changed",
                 enabled: newContextMenu.enabled,
+              })
+              .catch(() => {
+                // Ignore errors for tabs that don't have the content script
+              });
+          }
+        });
+      });
+    });
+  };
+
+  const handleToggleToolbar = () => {
+    const newToolbar = {
+      ...settings.toolbar,
+      enabled: !settings.toolbar?.enabled,
+    };
+
+    const newSettings = {
+      ...settings,
+      toolbar: newToolbar,
+    };
+    setSettings(newSettings);
+
+    // Auto-save
+    chrome.storage.sync.set({ cmdkSettings: newSettings }, () => {
+      setIsSaved(true);
+      setTimeout(() => setIsSaved(false), 2000);
+
+      // Notify content script of settings change
+      chrome.tabs.query({}, (tabs) => {
+        tabs.forEach((tab) => {
+          if (tab.id) {
+            chrome.tabs
+              .sendMessage(tab.id, {
+                action: "toolbar-settings-changed",
+                enabled: newToolbar.enabled,
               })
               .catch(() => {
                 // Ignore errors for tabs that don't have the content script
@@ -819,6 +836,13 @@ export default function SettingsPage() {
         <aside className="sticky top-16 h-[calc(100vh-4rem)] w-64 border-r border-border/40 bg-background/50 backdrop-blur p-6">
           <nav className="space-y-1">
             <a
+              href="#toolbar"
+              className="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg hover:bg-muted/50 transition-colors text-foreground"
+            >
+              <MousePointerClick className="w-4 h-4" />
+              Global Toolbar
+            </a>
+            <a
               href="#sources"
               className="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg hover:bg-muted/50 transition-colors text-foreground"
             >
@@ -894,6 +918,57 @@ export default function SettingsPage() {
 
         {/* Content Area */}
         <main className="flex-1 p-8 space-y-12 max-w-5xl">
+          {/* Global Toolbar Section */}
+          <section id="toolbar" className="scroll-mt-20">
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold mb-2">Global Toolbar</h2>
+              <p className="text-muted-foreground">
+                Enable or disable the floating toolbar on all pages
+              </p>
+            </div>
+
+            <div className="bg-card rounded-xl border border-border shadow-lg overflow-hidden">
+              <div className="divide-y divide-border">
+                {/* Enable Toolbar Toggle */}
+                <div className="p-6 flex items-start gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <h3 className="font-semibold text-base">
+                        Enable Floating Toolbar
+                      </h3>
+                      {settings.toolbar?.enabled && (
+                        <span className="text-xs px-2.5 py-1 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 font-medium">
+                          Active
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      Shows the floating toolbar on the right side of the screen
+                      on all pages. Provides quick access to tools like
+                      Controller Testing, Top Offers, and more.
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleToggleToolbar}
+                    className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${
+                      settings.toolbar?.enabled ?? true
+                        ? "bg-primary"
+                        : "bg-muted-foreground/30"
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform ${
+                        settings.toolbar?.enabled ?? true
+                          ? "translate-x-6"
+                          : "translate-x-1"
+                      }`}
+                    />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+
           {/* Command Sources Section */}
           <section id="sources" className="scroll-mt-20">
             <div className="mb-6">
@@ -1300,87 +1375,47 @@ export default function SettingsPage() {
             </div>
           </section>
 
-          {/* Shopify Guardrails Section */}
-          <section id="guardrails" className="scroll-mt-20">
+          {/* Shopify Buttons Section */}
+          <section id="shopify-buttons" className="scroll-mt-20">
             <div className="mb-6">
-              <h2 className="text-2xl font-bold mb-2">Shopify Guardrails</h2>
+              <h2 className="text-2xl font-bold mb-2">Shopify Buttons</h2>
               <p className="text-muted-foreground">
-                Automated validation checks for Shopify product pages to prevent
-                common errors
+                Enable or disable the quick action buttons on Shopify product
+                pages
               </p>
             </div>
 
             <div className="bg-card rounded-xl border border-border shadow-lg overflow-hidden">
               <div className="divide-y divide-border">
-                {/* Condition Mismatch Check */}
+                {/* Enable Buttons Toggle */}
                 <div className="p-6 flex items-start gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
                       <h3 className="font-semibold text-base">
-                        Condition Mismatch Check
+                        Enable Quick Action Buttons
                       </h3>
-                      {settings.shopifyGuardrails?.enableConditionCheck && (
-                        <span className="text-xs px-2.5 py-1 rounded-full bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 font-medium">
+                      {settings.shopifyButtons?.enabled && (
+                        <span className="text-xs px-2.5 py-1 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 font-medium">
                           Active
                         </span>
                       )}
                     </div>
                     <p className="text-sm text-muted-foreground leading-relaxed">
-                      Validates that eBay condition ID matches the Shopify
-                      condition. Shows red border and notification when
-                      mismatched.
+                      Shows the floating toolbar with eBay and PriceCharting
+                      buttons on Shopify product pages.
                     </p>
                   </div>
                   <button
-                    onClick={() => handleToggleGuardrail("condition")}
+                    onClick={handleToggleShopifyButtons}
                     className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${
-                      settings.shopifyGuardrails?.enableConditionCheck ?? true
+                      settings.shopifyButtons?.enabled ?? true
                         ? "bg-primary"
                         : "bg-muted-foreground/30"
                     }`}
                   >
                     <span
                       className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform ${
-                        settings.shopifyGuardrails?.enableConditionCheck ?? true
-                          ? "translate-x-6"
-                          : "translate-x-1"
-                      }`}
-                    />
-                  </button>
-                </div>
-
-                {/* Google Fields Check */}
-                <div className="p-6 flex items-start gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <h3 className="font-semibold text-base">
-                        Empty Google Fields Check
-                      </h3>
-                      {settings.shopifyGuardrails?.enableGoogleFieldsCheck && (
-                        <span className="text-xs px-2.5 py-1 rounded-full bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 font-medium">
-                          Active
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
-                      Alerts when required Google Shopping metafields are empty.
-                      Shows orange border and notification with dismissible
-                      warning.
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => handleToggleGuardrail("googleFields")}
-                    className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${
-                      settings.shopifyGuardrails?.enableGoogleFieldsCheck ??
-                      true
-                        ? "bg-primary"
-                        : "bg-muted-foreground/30"
-                    }`}
-                  >
-                    <span
-                      className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform ${
-                        settings.shopifyGuardrails?.enableGoogleFieldsCheck ??
-                        true
+                        settings.shopifyButtons?.enabled ?? true
                           ? "translate-x-6"
                           : "translate-x-1"
                       }`}
@@ -1404,43 +1439,6 @@ export default function SettingsPage() {
             <div className="bg-card rounded-xl border border-border shadow-lg overflow-hidden">
               <div className="p-8">
                 <div className="space-y-6">
-                  {/* Auto-Start Toggle */}
-                  <div className="p-6 flex items-start gap-4 bg-muted/20 rounded-lg border border-border/50">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <h3 className="font-semibold text-base">
-                          Auto-Start Controller Detection
-                        </h3>
-                        {settings.controllerTesting?.autoStart !== false && (
-                          <span className="text-xs px-2.5 py-1 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 font-medium">
-                            Enabled
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-sm text-muted-foreground leading-relaxed">
-                        Automatically start detecting controller inputs when
-                        opening the controller testing panel. Disable this if
-                        you want to manually connect your controller before
-                        starting detection.
-                      </p>
-                    </div>
-                    <button
-                      onClick={handleToggleControllerAutoStart}
-                      className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${
-                        settings.controllerTesting?.autoStart !== false
-                          ? "bg-primary"
-                          : "bg-muted-foreground/30"
-                      }`}
-                    >
-                      <span
-                        className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform ${
-                          settings.controllerTesting?.autoStart !== false
-                            ? "translate-x-6"
-                            : "translate-x-1"
-                        }`}
-                      />
-                    </button>
-                  </div>
                   <div className="p-4 bg-muted/20 rounded-lg border border-border/50">
                     <p className="text-sm text-muted-foreground mb-4">
                       Set the thresholds at which controller inputs change
@@ -1543,7 +1541,7 @@ export default function SettingsPage() {
             <div className="mb-6">
               <h2 className="text-2xl font-bold mb-2">eBay Summary</h2>
               <p className="text-muted-foreground">
-                Configure the summary feature for eBay sold listings
+                Display search context summary on eBay search pages
               </p>
             </div>
 
@@ -1563,20 +1561,24 @@ export default function SettingsPage() {
                       )}
                     </div>
                     <p className="text-sm text-muted-foreground leading-relaxed mb-3">
-                      Automatically displays average, median, high, and low sale
-                      prices for eBay sold listings. Includes clickable metrics
-                      to jump to specific listings and quick filters for viewing
-                      new/used items.
+                      Displays a summary banner showing your current search
+                      context (Active vs Sold listings, item condition) at the
+                      top of eBay search results. Includes quick filter links
+                      and easy access to the eBay sold listings tool.
                     </p>
                     <div className="text-xs text-muted-foreground space-y-1">
                       <p>
-                        • Shows price statistics at the top of search results
+                        • Shows current listing type (Active/Sold/Completed) and
+                        condition filters
                       </p>
                       <p>
-                        • Click metrics to scroll to highest/lowest/latest sold
-                        items
+                        • Quick filter links to switch between New, Used, and
+                        Broken conditions
                       </p>
-                      <p>• Quick filter buttons for new and used conditions</p>
+                      <p>
+                        • One-click switch to Sold Listings for price analysis
+                      </p>
+                      <p>• Access to eBay Tool sidepanel and settings</p>
                       <p>• Dismissible per search session</p>
                     </div>
                   </div>

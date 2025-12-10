@@ -396,10 +396,49 @@ export default defineContentScript({
       setInterval(findFields, 2000);
     };
 
+    const checkSettingsAndInit = () => {
+      chrome.storage.sync.get(["cmdkSettings"], (result) => {
+        const settings = result.cmdkSettings || {};
+        const enabled = settings.shopifyButtons?.enabled ?? true;
+
+        if (enabled) {
+          init();
+        }
+      });
+    };
+
+    // Listen for settings changes
+    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+      if (message.action === "shopify-buttons-settings-changed") {
+        if (message.enabled) {
+          // Re-enable: check if already running or needs init
+          if (!document.getElementById("scout-quick-actions-overlay")) {
+            init();
+          } else {
+            // If overlay exists but was hidden/removed, ensure it's visible
+            const overlay = document.getElementById(
+              "scout-quick-actions-overlay"
+            );
+            if (overlay) {
+              overlay.style.display = "flex";
+            }
+          }
+        } else {
+          // Disable: remove or hide overlay
+          const overlay = document.getElementById(
+            "scout-quick-actions-overlay"
+          );
+          if (overlay) {
+            overlay.style.display = "none";
+          }
+        }
+      }
+    });
+
     if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", init);
+      document.addEventListener("DOMContentLoaded", checkSettingsAndInit);
     } else {
-      init();
+      checkSettingsAndInit();
     }
   },
 });

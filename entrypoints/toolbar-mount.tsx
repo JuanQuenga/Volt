@@ -30,12 +30,35 @@ export default defineContentScript({
     // Initialize side panel context early
     initializeSidePanelContext();
 
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", mountToolbar, {
-        once: true,
+    const checkSettingsAndMount = () => {
+      chrome.storage.sync.get(["cmdkSettings"], (result) => {
+        const settings = result.cmdkSettings || {};
+        const enabled = settings.toolbar?.enabled ?? true;
+
+        if (enabled) {
+          mountToolbar();
+        }
       });
+    };
+
+    // Listen for settings changes
+    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+      if (message.action === "toolbar-settings-changed") {
+        if (message.enabled) {
+          mountToolbar();
+        } else {
+          const container = document.getElementById("scout-toolbar-root");
+          if (container) {
+            container.remove();
+          }
+        }
+      }
+    });
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", checkSettingsAndMount);
     } else {
-      mountToolbar();
+      checkSettingsAndMount();
     }
   },
 });

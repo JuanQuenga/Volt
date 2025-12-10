@@ -74,7 +74,7 @@ export const searchProviders: SearchProvider[] = [
     name: "eBay",
     trigger: ["ebay", "eb"],
     searchUrl:
-      "https://www.ebay.com/sch/i.html?_nkw={query}&_sacat=0&_from=R40&_dmd=2&rt=nc&LH_Sold=1&LH_Complete=1",
+      "https://www.ebay.com/sch/i.html?_nkw={query}&LH_Sold=1&LH_Complete=1&_dmd=2&rt=nc",
     icon: Tag,
     color: "bg-green-800",
   },
@@ -83,7 +83,7 @@ export const searchProviders: SearchProvider[] = [
     name: "Price Charting",
     trigger: ["pricecharting", "pc", "price"],
     searchUrl:
-      "https://www.pricecharting.com/search-products?q={query}&type=prices",
+      "https://www.pricecharting.com/search-products?q={query}&type=videogames",
     icon: TrendingUp,
     color: "bg-blue-600",
   },

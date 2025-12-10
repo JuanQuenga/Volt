@@ -9,6 +9,7 @@ import EbayTaxonomyTool from "./EbayTaxonomyTool";
 import BuyingGuide from "./BuyingGuide";
 import ShopifyHelp from "./ShopifyHelp";
 import ShopifySearch from "./ShopifySearch";
+import TabsManager from "./TabsManager";
 import { ChevronDown } from "lucide-react";
 import {
   DropdownMenu,
@@ -119,6 +120,7 @@ export default function UnifiedSidepanel() {
     "buying-guide": BuyingGuide,
     "shopify-help": ShopifyHelp,
     "shopify-product-search": ShopifySearch,
+    "tabs-manager": TabsManager,
   };
 
   const tools = SIDEPANEL_TOOLS.map((tool) => ({
