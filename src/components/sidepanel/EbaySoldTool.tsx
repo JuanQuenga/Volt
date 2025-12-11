@@ -1,305 +1,192 @@
 import React, { useState, useEffect, useRef } from "react";
 import SidepanelLayout from "./SidepanelLayout";
-import { MousePointerClick, RefreshCcw, X, ExternalLink, Loader2 } from "lucide-react";
+import { Search, X, ExternalLink, Clock } from "lucide-react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { Badge } from "../ui/badge";
 import { Card } from "../ui/card";
+import { Badge } from "../ui/badge";
+import { cn } from "../../lib/utils";
 
-interface EbayListing {
+type ConditionType = "new" | "used" | "broken" | null;
+
+interface SearchHistory {
   id: string;
-  title: string;
-  price: number;
-  currency: string;
-  date: string;
-  image: string;
+  query: string;
+  timestamp: number;
   url: string;
+  condition: ConditionType;
 }
 
 export default function EbaySoldTool() {
   const [query, setQuery] = useState("");
-  const [filters, setFilters] = useState({
-    sold: true,
-    complete: true,
-    bin: false,
-    auction: false,
-    conditionUsed: false,
-    conditionNew: false,
-  });
-  
-  const [isSelecting, setIsSelecting] = useState(false);
-  const [isNavigating, setIsNavigating] = useState(false);
+  const [condition, setCondition] = useState<ConditionType>(null);
+  const [searchHistory, setSearchHistory] = useState<SearchHistory[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [savedListing, setSavedListing] = useState<EbayListing | null>(null);
-  const isFirstRender = useRef(true);
+  const [activeEbayTabId, setActiveEbayTabId] = useState<number | null>(null);
 
-  // Load saved listing on mount
+  // Load search history on mount
   useEffect(() => {
-    const saved = localStorage.getItem("scout_saved_ebay_listing");
+    const saved = localStorage.getItem("scout_ebay_search_history");
     if (saved) {
       try {
-        setSavedListing(JSON.parse(saved));
+        setSearchHistory(JSON.parse(saved));
       } catch (e) {
-        console.error("Failed to parse saved listing", e);
+        console.error("Failed to parse search history", e);
       }
     }
-
-    const handleMessage = (message: any) => {
-      if (message.type === "EBAY_LISTING_SELECTED" && message.data) {
-        setSavedListing(message.data);
-        localStorage.setItem("scout_saved_ebay_listing", JSON.stringify(message.data));
-        setIsSelecting(false);
-      }
-    };
-
-    chrome.runtime.onMessage.addListener(handleMessage);
-    return () => chrome.runtime.onMessage.removeListener(handleMessage);
   }, []);
 
-  // Auto-update tab when filters change
-  useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      return;
+  const findOrCreateEbayTab = async (url: string) => {
+    // First check if we have a tracked eBay tab that still exists
+    if (activeEbayTabId) {
+      try {
+        const tab = await chrome.tabs.get(activeEbayTabId);
+        if (tab && tab.url?.includes("ebay.")) {
+          await chrome.tabs.update(activeEbayTabId, { url, active: true });
+          return activeEbayTabId;
+        }
+      } catch {
+        // Tab no longer exists
+        setActiveEbayTabId(null);
+      }
     }
-    handleSearch();
-  }, [filters]);
 
-  const findEbayTabId = async () => {
     const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
+
+    // If active tab is already eBay, use it
     if (activeTab?.id && activeTab.url?.includes("ebay.")) {
+      setActiveEbayTabId(activeTab.id);
+      await chrome.tabs.update(activeTab.id, { url });
       return activeTab.id;
     }
 
-    const ebayTabs = await chrome.tabs.query({});
-    const fallbackTab = ebayTabs.find(
-      (tab) => tab.id !== undefined && tab.url?.includes("ebay.")
-    );
-    if (fallbackTab?.id) {
-      return fallbackTab.id;
+    // Otherwise, create a new tab
+    const newTab = await chrome.tabs.create({ url, active: true });
+    if (!newTab.id) {
+      throw new Error("Failed to create new eBay tab");
     }
-
-    throw new Error("Open an eBay tab to control it from the sidepanel.");
+    setActiveEbayTabId(newTab.id);
+    return newTab.id;
   };
 
-  const toggleFilter = (key: keyof typeof filters) => {
-    setFilters((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
-
-  const buildEbayUrl = () => {
+  const buildEbayUrl = (searchQuery: string, searchCondition: ConditionType) => {
     const baseUrl = "https://www.ebay.com/sch/i.html";
     const params = new URLSearchParams();
-    
-    if (query) params.append("_nkw", query);
+
+    if (searchQuery) params.append("_nkw", searchQuery);
     params.append("_sacat", "0"); // All Categories
     params.append("_from", "R40");
     params.append("_dmd", "2"); // View All?
     params.append("rt", "nc");
-    
-    if (filters.sold) params.append("LH_Sold", "1");
-    if (filters.complete) params.append("LH_Complete", "1");
-    
-    if (filters.bin) params.append("LH_BIN", "1");
-    if (filters.auction) params.append("LH_Auction", "1");
-    
-    if (filters.conditionUsed && !filters.conditionNew) params.append("LH_ItemCondition", "3000");
-    if (filters.conditionNew && !filters.conditionUsed) params.append("LH_ItemCondition", "1000");
+
+    // Always include sold and completed
+    params.append("LH_Sold", "1");
+    params.append("LH_Complete", "1");
+
+    // Handle single condition filter
+    if (searchCondition === "new") {
+      params.append("LH_ItemCondition", "1000");
+    } else if (searchCondition === "used") {
+      params.append("LH_ItemCondition", "3000");
+    } else if (searchCondition === "broken") {
+      params.append("LH_ItemCondition", "7000");
+    }
 
     return `${baseUrl}?${params.toString()}`;
   };
 
-  const handleSearch = async () => {
-    setError(null);
-    setIsNavigating(true);
-    try {
-      const url = buildEbayUrl();
-      const tabId = await findEbayTabId();
-      await chrome.tabs.update(tabId, { url });
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || "Failed to update eBay tab");
-    } finally {
-      setIsNavigating(false);
-    }
-  };
+  const toggleCondition = async (key: ConditionType) => {
+    const newCondition = condition === key ? null : key;
+    setCondition(newCondition);
 
-  const enableSelectionMode = async () => {
-    setIsSelecting(true);
-    setError(null);
-    try {
-      const tabId = await findEbayTabId();
-      await chrome.scripting.executeScript({
-        target: { tabId },
-        func: injectSelectionScript,
-      });
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || "Failed to enable selection mode");
-      setIsSelecting(false);
-    }
-  };
-
-  // This function is injected into the page
-  const injectSelectionScript = () => {
-    const parsePrice = (text: string) => {
-      if (!text) return null;
-      let cleaned = text
-        .replace(/\(.*?\)/g, "")
-        .replace(/Approximately\s+/i, "")
-        .replace(/About\s+/i, "")
-        .trim();
-
-      const rangeSplit = cleaned.split(/\bto\b|-/i);
-      if (rangeSplit.length > 1) {
-        cleaned = rangeSplit[0];
-      }
-
-      const match = cleaned.match(/[\d,.]+/);
-      if (!match) return null;
-      const numeric = parseFloat(match[0].replace(/,/g, ""));
-      if (!Number.isFinite(numeric)) return null;
-      return numeric;
-    };
-
-    const detectCurrencyPrefix = (text: string) => {
-      if (!text) return "$";
-      const symbolMatch = text.match(/[$\u00a3\u00a5\u20ac]/);
-      if (symbolMatch) return symbolMatch[0];
-      return "$";
-    };
-
-    const parseSoldDate = (element: Element) => {
+    // Auto-update the eBay tab if we have an active search
+    if (query.trim() && activeEbayTabId) {
       try {
-        const soldDateElement =
-          element.querySelector(".su-styled-text.positive") ||
-          element.querySelector(".s-item__title--tagblock .POSITIVE") ||
-          element.querySelector(".s-item__ended-date") ||
-          element.querySelector(".s-card__caption .positive");
-
-        if (!soldDateElement) return null;
-        const text = soldDateElement.textContent?.trim();
-        if (!text) return null;
-        return text.replace("Sold", "").trim();
+        const url = buildEbayUrl(query, newCondition);
+        await chrome.tabs.update(activeEbayTabId, { url });
       } catch {
-        return null;
+        // Tab may no longer exist, that's okay
+        setActiveEbayTabId(null);
       }
-    };
-
-    const styleId = "scout-ebay-select-style";
-    if (!document.getElementById(styleId)) {
-        const style = document.createElement("style");
-        style.id = styleId;
-        style.textContent = `
-            .scout-selectable-listing {
-                cursor: copy !important;
-            }
-            .scout-selectable-listing:hover {
-                outline: 3px solid #22c55e !important;
-                box-shadow: 0 0 15px rgba(34, 197, 94, 0.3) !important;
-                z-index: 1000 !important;
-                position: relative !important;
-                background-color: rgba(34, 197, 94, 0.05) !important;
-            }
-            .scout-selectable-listing:hover::after {
-                content: "Click to Save";
-                position: absolute;
-                top: 0;
-                right: 0;
-                background: #22c55e;
-                color: white;
-                padding: 4px 8px;
-                font-size: 12px;
-                font-weight: bold;
-                z-index: 1001;
-                pointer-events: none;
-            }
-        `;
-        document.head.appendChild(style);
     }
-
-    const getListings = () => {
-         const mainResultsContainer = 
-            document.querySelector("ul.srp-results") || 
-            document.querySelector(".srp-river-results") || 
-            document.querySelector("#srp-river-results") ||
-            document.querySelector(".srp-results");
-            
-         if (!mainResultsContainer) return [];
-         
-         return [
-             ...Array.from(mainResultsContainer.querySelectorAll("li.s-item")),
-             ...Array.from(mainResultsContainer.querySelectorAll("div.s-item")),
-             ...Array.from(mainResultsContainer.querySelectorAll("li.s-card")),
-             ...Array.from(mainResultsContainer.querySelectorAll("div.s-card"))
-         ];
-    };
-
-    const listings = getListings();
-    if (!listings.length) {
-        alert("No listings found to select.");
-        return;
-    }
-
-    const cleanup = () => {
-        listings.forEach((li) => {
-            li.classList.remove("scout-selectable-listing");
-            li.removeEventListener("click", handleClick as any, true);
-        });
-        const style = document.getElementById(styleId);
-        if (style) style.remove();
-    };
-
-    const handleClick = (e: MouseEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        const item = e.currentTarget as HTMLElement;
-        
-        const titleEl = item.querySelector(".s-item__title") || item.querySelector(".s-card__title");
-        const priceEl = item.querySelector(".s-item__price") || item.querySelector(".s-card__price");
-        const linkEl = (item.querySelector(".s-item__link") || item.querySelector(".s-card__link")) as HTMLAnchorElement;
-        const imgEl = (item.querySelector(".s-item__image-img") || item.querySelector(".s-card__image")) as HTMLImageElement;
-
-        if (titleEl && priceEl) {
-             const priceText = priceEl.textContent?.trim() || "";
-             const price = parsePrice(priceText);
-             const currency = detectCurrencyPrefix(priceText);
-
-             if (price !== null) {
-                const data = {
-                    id: item.getAttribute("data-listingid") || Math.random().toString(),
-                    title: titleEl.textContent?.trim() || "Unknown",
-                    price,
-                    currency,
-                    date: parseSoldDate(item) || "",
-                    url: linkEl?.href || "",
-                    image: imgEl?.src || "",
-                };
-                
-                chrome.runtime.sendMessage({ type: "EBAY_LISTING_SELECTED", data });
-             }
-        }
-
-        cleanup();
-    };
-
-    listings.forEach((li) => {
-        li.classList.add("scout-selectable-listing");
-        li.addEventListener("click", handleClick as any, true);
-    });
   };
 
-  const clearSavedListing = () => {
-      setSavedListing(null);
-      localStorage.removeItem("scout_saved_ebay_listing");
+  const handleSearch = async () => {
+    if (!query.trim()) {
+      setError("Please enter a search query");
+      return;
+    }
+
+    setError(null);
+    try {
+      const url = buildEbayUrl(query, condition);
+
+      // Save to history
+      const newHistory: SearchHistory = {
+        id: Date.now().toString(),
+        query: query.trim(),
+        timestamp: Date.now(),
+        url,
+        condition,
+      };
+
+      const updatedHistory = [newHistory, ...searchHistory.slice(0, 19)]; // Keep last 20
+      setSearchHistory(updatedHistory);
+      localStorage.setItem("scout_ebay_search_history", JSON.stringify(updatedHistory));
+
+      // Navigate or create tab
+      await findOrCreateEbayTab(url);
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || "Failed to navigate to eBay");
+    }
+  };
+
+  const loadSearchFromHistory = async (historyItem: SearchHistory) => {
+    setError(null);
+    try {
+      await findOrCreateEbayTab(historyItem.url);
+      setQuery(historyItem.query);
+      setCondition(historyItem.condition);
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || "Failed to load search");
+    }
+  };
+
+  const clearHistory = () => {
+    setSearchHistory([]);
+    localStorage.removeItem("scout_ebay_search_history");
+  };
+
+  const removeHistoryItem = (id: string) => {
+    const updatedHistory = searchHistory.filter(item => item.id !== id);
+    setSearchHistory(updatedHistory);
+    localStorage.setItem("scout_ebay_search_history", JSON.stringify(updatedHistory));
+  };
+
+  const formatTimestamp = (timestamp: number) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return "Just now";
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return date.toLocaleDateString();
   };
 
   return (
     <SidepanelLayout className="h-full flex flex-col">
       <div className="p-4 space-y-4 border-b">
-        <div className="flex gap-2">
+        {/* Full width search input */}
+        <div className="relative">
           <Input
-            placeholder="Search keywords..."
+            placeholder="Search eBay sold listings..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => {
@@ -307,148 +194,136 @@ export default function EbaySoldTool() {
                 handleSearch();
               }
             }}
+            className="pr-10"
           />
           <Button
+            size="icon"
+            variant="ghost"
             onClick={handleSearch}
-            disabled={isNavigating}
-            className="min-w-[140px]"
-            title="Update the active eBay tab"
+            className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
+            title="Search eBay"
           >
-            {isNavigating ? "Updating..." : "Update Tab"}
-            {!isNavigating && <RefreshCcw className="ml-2 h-4 w-4" />}
+            <Search className="h-4 w-4" />
           </Button>
         </div>
-        
-        <div className="flex flex-wrap gap-2">
-           <Badge 
-             variant={filters.sold ? "default" : "outline"} 
-             className="cursor-pointer select-none"
-             onClick={() => toggleFilter("sold")}
-           >
-             Sold
-           </Badge>
-           <Badge 
-             variant={filters.complete ? "default" : "outline"} 
-             className="cursor-pointer select-none"
-             onClick={() => toggleFilter("complete")}
-           >
-             Completed
-           </Badge>
-           <Badge 
-             variant={filters.bin ? "default" : "outline"} 
-             className="cursor-pointer select-none"
-             onClick={() => toggleFilter("bin")}
-           >
-             Buy It Now
-           </Badge>
-           <Badge 
-             variant={filters.auction ? "default" : "outline"} 
-             className="cursor-pointer select-none"
-             onClick={() => toggleFilter("auction")}
-           >
-             Auction
-           </Badge>
-           <Badge 
-             variant={filters.conditionUsed ? "default" : "outline"} 
-             className="cursor-pointer select-none"
-             onClick={() => toggleFilter("conditionUsed")}
-           >
-             Used (3000)
-           </Badge>
-           <Badge 
-             variant={filters.conditionNew ? "default" : "outline"} 
-             className="cursor-pointer select-none"
-             onClick={() => toggleFilter("conditionNew")}
-           >
-             New (1000)
-           </Badge>
+
+        {/* Condition toggle badges */}
+        <div className="flex gap-2">
+          <Badge
+            variant={condition === "new" ? "default" : "outline"}
+            className={cn(
+              "cursor-pointer transition-colors",
+              condition === "new" && "bg-green-600 hover:bg-green-700"
+            )}
+            onClick={() => toggleCondition("new")}
+          >
+            New
+          </Badge>
+          <Badge
+            variant={condition === "used" ? "default" : "outline"}
+            className={cn(
+              "cursor-pointer transition-colors",
+              condition === "used" && "bg-blue-600 hover:bg-blue-700"
+            )}
+            onClick={() => toggleCondition("used")}
+          >
+            Used
+          </Badge>
+          <Badge
+            variant={condition === "broken" ? "default" : "outline"}
+            className={cn(
+              "cursor-pointer transition-colors",
+              condition === "broken" && "bg-orange-600 hover:bg-orange-700"
+            )}
+            onClick={() => toggleCondition("broken")}
+          >
+            Broken
+          </Badge>
         </div>
 
-        <Button 
-          variant={isSelecting ? "destructive" : "secondary"}
-          className="w-full" 
-          onClick={enableSelectionMode}
-          disabled={isSelecting && !error}
-        >
-          {isSelecting ? (
-            <>
-                Selecting... Click a listing on eBay
-                <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-            </>
-          ) : (
-            <>
-                Select Listing To Save
-                <MousePointerClick className="ml-2 h-4 w-4" />
-            </>
-          )}
-        </Button>
-
-        {error && <div className="text-xs text-destructive">{error}</div>}
+        {error && <div className="text-xs text-destructive bg-destructive/10 p-2 rounded">{error}</div>}
       </div>
 
+      {/* Search History */}
       <div className="flex-1 overflow-y-auto p-4">
-        {savedListing ? (
+        {searchHistory.length > 0 ? (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-lg">Saved Listing</h3>
+              <h3 className="font-semibold text-lg">Search History</h3>
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={clearSavedListing}
+                onClick={clearHistory}
                 className="text-muted-foreground hover:text-destructive"
               >
                 <X className="h-4 w-4 mr-1" />
-                Clear
+                Clear All
               </Button>
             </div>
             
-            <a 
-              href={savedListing.url} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="block group"
-            >
-              <Card className="p-4 flex gap-4 hover:border-primary transition-colors border-2">
-                <div className="h-24 w-24 flex-shrink-0 rounded bg-muted overflow-hidden relative">
-                  {savedListing.image ? (
-                    <img src={savedListing.image} alt="" className="h-full w-full object-cover" />
-                  ) : (
-                    <div className="h-full w-full flex items-center justify-center text-muted-foreground text-xs">No Img</div>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0 flex flex-col justify-between">
-                  <div className="font-medium text-base line-clamp-2 group-hover:text-primary transition-colors">
-                    {savedListing.title}
-                  </div>
-                  <div className="mt-2 flex items-center justify-between">
-                    <span className="font-bold text-xl text-green-600 dark:text-green-500">
-                      {savedListing.currency}{savedListing.price.toFixed(2)}
-                    </span>
-                    <ExternalLink className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                  {savedListing.date && (
-                      <div className="text-xs text-muted-foreground mt-1">
-                          Sold: {savedListing.date}
+            <div className="space-y-2">
+              {searchHistory.map((item) => (
+                <Card key={item.id} className="group hover:border-primary transition-colors">
+                  <button
+                    onClick={() => loadSearchFromHistory(item)}
+                    className="w-full p-3 text-left"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-sm line-clamp-2 group-hover:text-primary transition-colors">
+                          {item.query}
+                        </div>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Clock className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-xs text-muted-foreground">
+                            {formatTimestamp(item.timestamp)}
+                          </span>
+                        </div>
+                        {item.condition && (
+                          <div className="flex gap-1 mt-2">
+                            <span className={cn(
+                              "text-xs px-2 py-0.5 rounded",
+                              item.condition === "new" && "bg-green-100 text-green-700",
+                              item.condition === "used" && "bg-blue-100 text-blue-700",
+                              item.condition === "broken" && "bg-orange-100 text-orange-700"
+                            )}>
+                              {item.condition.charAt(0).toUpperCase() + item.condition.slice(1)}
+                            </span>
+                          </div>
+                        )}
                       </div>
-                  )}
-                </div>
-              </Card>
-            </a>
-
-            <div className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-md">
-              <p>This listing is saved to your browser storage. You can close the sidepanel and come back to it later.</p>
+                      <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeHistoryItem(item.id);
+                          }}
+                          title="Remove"
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                        <ExternalLink className="h-4 w-4 text-muted-foreground mt-2" />
+                      </div>
+                    </div>
+                  </button>
+                </Card>
+              ))}
             </div>
           </div>
         ) : (
           <div className="text-center text-muted-foreground py-8 text-sm space-y-2">
             <div className="flex justify-center mb-2">
-                <MousePointerClick className="h-10 w-10 opacity-20" />
+              <Search className="h-10 w-10 opacity-20" />
             </div>
-            <p>No listing saved.</p>
-            <p>Click <strong>Select Listing To Save</strong> and click on any result on the eBay page.</p>
+            <p>No search history yet.</p>
+            <p>Enter a search query above to find sold items on eBay.</p>
           </div>
         )}
       </div>
     </SidepanelLayout>
   );
 }
+

@@ -222,8 +222,8 @@ export default function ShopifySearch() {
         {/* Store Config */}
         <div className="flex items-center justify-between px-1">
           <div className="flex items-center gap-2">
-            <div className="p-1.5 bg-green-100 dark:bg-green-900/30 rounded-md">
-              <RefreshCw className="h-4 w-4 text-green-600 dark:text-green-400" />
+            <div className="p-1.5 bg-green-100 rounded-md">
+              <RefreshCw className="h-4 w-4 text-green-600" />
             </div>
             <div className="flex flex-col">
               <span className="text-xs text-muted-foreground">
@@ -254,7 +254,7 @@ export default function ShopifySearch() {
             placeholder="Search products..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="bg-slate-50 dark:bg-slate-800"
+            className="bg-slate-50"
           />
           <Button type="submit" disabled={!storeName}>
             <Search className="h-4 w-4" />
@@ -285,7 +285,7 @@ export default function ShopifySearch() {
                 history.map((item, i) => (
                   <div
                     key={i}
-                    className="flex items-center justify-between p-3 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors cursor-pointer group"
+                    className="flex items-center justify-between p-3 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors cursor-pointer group"
                     onClick={() => {
                       setQuery(item.query);
                       executeSearch(item.query);

@@ -71,6 +71,8 @@ body {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  /* Force light color scheme regardless of browser/OS setting */
+  color-scheme: light;
 }
 
 .hdr {

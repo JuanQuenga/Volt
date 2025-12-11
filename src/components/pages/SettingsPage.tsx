@@ -997,7 +997,7 @@ export default function SettingsPage() {
           </div>
           <div className="ml-auto flex items-center gap-3">
             {isSaved && (
-              <div className="flex items-center gap-2 px-3 py-1.5 text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 rounded-lg">
+              <div className="flex items-center gap-2 px-3 py-1.5 text-green-700 bg-green-50 rounded-lg">
                 <Check className="w-4 h-4" />
                 <span className="text-sm font-medium">Saved!</span>
               </div>
@@ -1126,7 +1126,7 @@ export default function SettingsPage() {
                         Enable Floating Toolbar
                       </h3>
                       {settings.toolbar?.enabled && (
-                        <span className="text-xs px-2.5 py-1 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 font-medium">
+                        <span className="text-xs px-2.5 py-1 rounded-full bg-green-100 text-green-700 font-medium">
                           Active
                         </span>
                       )}
@@ -1193,7 +1193,7 @@ export default function SettingsPage() {
                           {source.label}
                         </h3>
                         {settings.enabledSources[source.key] && (
-                          <span className="text-xs px-2.5 py-1 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 font-medium">
+                          <span className="text-xs px-2.5 py-1 rounded-full bg-green-100 text-green-700 font-medium">
                             Enabled
                           </span>
                         )}
@@ -1251,8 +1251,8 @@ export default function SettingsPage() {
                   </div>
 
                   {settings.bookmarkFolderIds?.length === 0 && (
-                    <div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-                      <p className="text-sm text-green-700 dark:text-green-400">
+                    <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                      <p className="text-sm text-green-700">
                         All bookmarks from all folders are currently shown
                       </p>
                     </div>
@@ -1584,7 +1584,7 @@ export default function SettingsPage() {
                         Enable Quick Action Buttons
                       </h3>
                       {settings.shopifyButtons?.enabled && (
-                        <span className="text-xs px-2.5 py-1 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 font-medium">
+                        <span className="text-xs px-2.5 py-1 rounded-full bg-green-100 text-green-700 font-medium">
                           Active
                         </span>
                       )}
@@ -1744,7 +1744,7 @@ export default function SettingsPage() {
                         Enable eBay Summary
                       </h3>
                       {settings.ebaySummary?.enabled && (
-                        <span className="text-xs px-2.5 py-1 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 font-medium">
+                        <span className="text-xs px-2.5 py-1 rounded-full bg-blue-100 text-blue-700 font-medium">
                           Active
                         </span>
                       )}
@@ -1811,7 +1811,7 @@ export default function SettingsPage() {
                         Enable UPC Detection
                       </h3>
                       {settings.upcHighlighter?.enabled && (
-                        <span className="text-xs px-2.5 py-1 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 font-medium">
+                        <span className="text-xs px-2.5 py-1 rounded-full bg-blue-100 text-blue-700 font-medium">
                           Active
                         </span>
                       )}
@@ -1868,7 +1868,7 @@ export default function SettingsPage() {
                         Enable Context Menu
                       </h3>
                       {settings.contextMenu?.enabled && (
-                        <span className="text-xs px-2.5 py-1 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 font-medium">
+                        <span className="text-xs px-2.5 py-1 rounded-full bg-blue-100 text-blue-700 font-medium">
                           Active
                         </span>
                       )}
@@ -1969,8 +1969,8 @@ export default function SettingsPage() {
                   </div>
 
                   {settings.csvLinks?.customUrl && (
-                    <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                      <p className="text-xs text-blue-700 dark:text-blue-400">
+                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <p className="text-xs text-blue-700">
                         ✓ Using custom CSV URL. Clear the cache to reload from
                         your new URL.
                       </p>
@@ -2003,8 +2003,8 @@ export default function SettingsPage() {
                           URL
                         </p>
                       </div>
-                      <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
-                        <p className="text-xs text-amber-700 dark:text-amber-400">
+                      <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                        <p className="text-xs text-amber-700">
                           <strong>Note:</strong> Clearing CSV cache does NOT
                           affect your Chrome bookmarks. These are separate
                           features.
@@ -2032,7 +2032,7 @@ export default function SettingsPage() {
                         Clear Cache
                       </button>
                       {csvCacheCleared && (
-                        <div className="flex items-center gap-2 px-3 py-1.5 text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                        <div className="flex items-center gap-2 px-3 py-1.5 text-green-700 bg-green-50 rounded-lg">
                           <Check className="w-4 h-4" />
                           <span className="text-xs font-medium">Done!</span>
                         </div>

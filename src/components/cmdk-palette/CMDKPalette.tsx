@@ -813,11 +813,11 @@ export function CMDKPalette({
       <Command.List className="cmdk-list" ref={listRef}>
         <Command.Empty className="cmdk-empty">
           <div className="flex flex-col items-center justify-center py-8 px-4">
-            <SearchIcon className="w-12 h-12 text-gray-300 dark:text-gray-600 mb-3" />
-            <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
+            <SearchIcon className="w-12 h-12 text-gray-300 mb-3" />
+            <p className="text-sm font-medium text-gray-500 mb-1">
               No results found
             </p>
-            <p className="text-xs text-gray-400 dark:text-gray-500">
+            <p className="text-xs text-gray-400">
               {trimmedSearch ? (
                 <>
                   Press <kbd className="cmdk-kbd">Enter</kbd> to search Google
@@ -849,15 +849,15 @@ export function CMDKPalette({
                         <provider.icon className="w-4 h-4 text-white" />
                       </div>
                       <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                        <p className="text-sm font-medium text-gray-900">
                           {provider.name}
                           {provider.id === activeProvider?.id && (
-                            <span className="ml-2 text-xs px-1.5 py-0.5 rounded bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">
+                            <span className="ml-2 text-xs px-1.5 py-0.5 rounded bg-green-100 text-green-700">
                               Active
                             </span>
                           )}
                         </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                        <p className="text-xs text-gray-500">
                           {provider.id === activeProvider?.id ? (
                             <>
                               Press <kbd className="cmdk-kbd">Enter</kbd> to
@@ -891,7 +891,7 @@ export function CMDKPalette({
                   className="cmdk-item"
                 >
                   <div className="flex items-center gap-3 px-4 py-3 w-full">
-                    <div className="p-2 rounded bg-gray-100 dark:bg-gray-800">
+                    <div className="p-2 rounded bg-gray-100">
                       {lastAction.type === "search" ? (
                         <SearchIcon className="w-4 h-4 text-gray-500" />
                       ) : lastAction.type === "tool" ? (
@@ -903,10 +903,10 @@ export function CMDKPalette({
                       )}
                     </div>
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                      <p className="text-sm font-medium text-gray-900">
                         {lastAction.label}
                       </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                      <p className="text-xs text-gray-500">
                         {lastAction.type === "search"
                           ? "Search again"
                           : "Open again"}
@@ -1024,10 +1024,10 @@ export function CMDKPalette({
                                   <tool.icon className="w-4 h-4 text-white" />
                                 </div>
                                 <div className="flex-1">
-                                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                  <p className="text-sm font-medium text-gray-900">
                                     {tool.label}
                                   </p>
-                                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                                  <p className="text-xs text-gray-500">
                                     {tool.description}
                                   </p>
                                 </div>
@@ -1097,10 +1097,10 @@ export function CMDKPalette({
                                     <provider.icon className="w-4 h-4 text-white" />
                                   </div>
                                   <div>
-                                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                    <p className="text-sm font-medium text-gray-900">
                                       Search {provider.name}
                                     </p>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                                    <p className="text-xs text-gray-500">
                                       Press <kbd className="cmdk-kbd">Tab</kbd>{" "}
                                       to activate
                                     </p>

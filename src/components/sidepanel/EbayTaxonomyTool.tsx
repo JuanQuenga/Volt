@@ -105,7 +105,7 @@ export default function EbayTaxonomyTool() {
                 onClick={() => copyCategory(s.categoryPath, s.categoryId)}
               >
                 <CardContent className="p-3 flex items-center gap-3">
-                  <div className="p-2 rounded bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400">
+                  <div className="p-2 rounded bg-purple-100 text-purple-600">
                     <Layers className="h-4 w-4" />
                   </div>
                   <div className="flex-1 min-w-0">

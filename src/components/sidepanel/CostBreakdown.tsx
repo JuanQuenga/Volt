@@ -203,8 +203,8 @@ export default function CostBreakdown() {
     <SidepanelLayout
       title="Order Cost Calculator"
       actions={
-        <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
-          <Boxes className="h-5 w-5 text-green-600 dark:text-green-400" />
+        <div className="p-2 bg-green-100 rounded-lg">
+          <Boxes className="h-5 w-5 text-green-600" />
         </div>
       }
     >
@@ -212,8 +212,8 @@ export default function CostBreakdown() {
         {/* Toolbar */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="p-1.5 bg-green-100 dark:bg-green-900/30 rounded-md">
-              <Boxes className="h-4 w-4 text-green-600 dark:text-green-400" />
+            <div className="p-1.5 bg-green-100 rounded-md">
+              <Boxes className="h-4 w-4 text-green-600" />
             </div>
             <span className="font-medium text-sm">Calculator</span>
           </div>
@@ -222,7 +222,7 @@ export default function CostBreakdown() {
               variant="ghost"
               size="sm"
               onClick={() => setSaveDialogOpen(true)}
-              className="h-10 w-10 p-0 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
+              className="h-10 w-10 p-0 text-slate-500 hover:text-slate-900"
               title="Save Breakdown"
             >
               <Save className="h-6 w-6" />
@@ -231,7 +231,7 @@ export default function CostBreakdown() {
               variant="ghost"
               size="sm"
               onClick={() => setLoadDialogOpen(true)}
-              className="h-10 w-10 p-0 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
+              className="h-10 w-10 p-0 text-slate-500 hover:text-slate-900"
               title="Load Breakdown"
             >
               <FolderOpen className="h-6 w-6" />
@@ -240,7 +240,7 @@ export default function CostBreakdown() {
               variant="ghost"
               size="sm"
               onClick={clearCurrent}
-              className="h-10 w-10 p-0 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
+              className="h-10 w-10 p-0 text-slate-500 hover:text-slate-900"
               title="Clear Form"
             >
               <RotateCcw className="h-6 w-6" />
@@ -255,23 +255,23 @@ export default function CostBreakdown() {
             placeholder="Total order cost"
             value={totalOrderCost}
             onChange={(e) => setTotalOrderCost(e.target.value)}
-            className="text-lg h-12 bg-slate-50 dark:bg-slate-800 focus:bg-white dark:focus:bg-slate-900"
+            className="text-lg h-12 bg-slate-50 focus:bg-white"
           />
 
           {numericTotalOrderCost > 0 && (
             <div
               className={`p-3 rounded-lg ${
                 breakdown.remainingCost >= 0
-                  ? "bg-green-50 dark:bg-green-900/20"
-                  : "bg-red-50 dark:bg-red-900/20"
+                  ? "bg-green-50"
+                  : "bg-red-50"
               }`}
             >
               <div className="flex justify-between items-center">
                 <span
                   className={`text-sm font-medium ${
                     breakdown.remainingCost >= 0
-                      ? "text-green-700 dark:text-green-300"
-                      : "text-red-700 dark:text-red-300"
+                      ? "text-green-700"
+                      : "text-red-700"
                   }`}
                 >
                   Unassigned
@@ -279,8 +279,8 @@ export default function CostBreakdown() {
                 <span
                   className={`text-base font-semibold ${
                     breakdown.remainingCost >= 0
-                      ? "text-green-900 dark:text-green-100"
-                      : "text-red-900 dark:text-red-100"
+                      ? "text-green-900"
+                      : "text-red-900"
                   }`}
                 >
                   {formatCurrency(breakdown.remainingCost)}
@@ -296,13 +296,13 @@ export default function CostBreakdown() {
             <div key={item.id} className="space-y-3">
               {/* Item Header */}
               <div className="flex items-center gap-2">
-                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 text-xs font-medium text-slate-600 dark:text-slate-400">
+                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 text-xs font-medium text-slate-600">
                   {index + 1}
                 </span>
                 <Input
                   value={item.name}
                   onChange={(e) => updateItemName(item.id, e.target.value)}
-                  className="flex-1 h-9 bg-slate-50 dark:bg-slate-800"
+                  className="flex-1 h-9 bg-slate-50"
                   placeholder="Item name"
                 />
                 {items.length > 1 && (
@@ -310,7 +310,7 @@ export default function CostBreakdown() {
                     variant="ghost"
                     size="sm"
                     onClick={() => removeItem(item.id)}
-                    className="h-9 w-9 p-0 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                    className="h-9 w-9 p-0 text-slate-400 hover:text-red-600 hover:bg-red-50"
                     aria-label={`Remove ${item.name}`}
                   >
                     <Trash2 className="h-4 w-4" />
@@ -321,7 +321,7 @@ export default function CostBreakdown() {
               {/* Cost and Sale Price Inputs */}
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1">
-                  <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                  <label className="text-xs font-medium text-slate-600">
                     Cost
                   </label>
                   <Input
@@ -329,11 +329,11 @@ export default function CostBreakdown() {
                     placeholder="0.00"
                     value={item.cost}
                     onChange={(e) => updateItemCost(item.id, e.target.value)}
-                    className="bg-slate-50 dark:bg-slate-800"
+                    className="bg-slate-50"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                  <label className="text-xs font-medium text-slate-600">
                     Projection
                   </label>
                   <Input
@@ -343,7 +343,7 @@ export default function CostBreakdown() {
                     onChange={(e) =>
                       updateItemSalePrice(item.id, e.target.value)
                     }
-                    className="bg-slate-50 dark:bg-slate-800"
+                    className="bg-slate-50"
                   />
                 </div>
               </div>
@@ -351,26 +351,26 @@ export default function CostBreakdown() {
               {/* Metrics */}
               {(item.costValue > 0 || item.salePriceValue > 0) && (
                 <div className="flex gap-2 text-xs">
-                  <div className="flex-1 p-2 rounded-lg bg-slate-50 dark:bg-slate-800">
-                    <div className="text-slate-600 dark:text-slate-400 mb-0.5">
+                  <div className="flex-1 p-2 rounded-lg bg-slate-50">
+                    <div className="text-slate-600 mb-0.5">
                       % of Order
                     </div>
-                    <div className="font-semibold text-slate-900 dark:text-slate-100">
+                    <div className="font-semibold text-slate-900">
                       {item.percentage.toFixed(1)}%
                     </div>
                   </div>
                   <div
                     className={`flex-1 p-2 rounded-lg ${
                       item.margin >= 0
-                        ? "bg-green-50 dark:bg-green-900/20"
-                        : "bg-amber-50 dark:bg-amber-900/20"
+                        ? "bg-green-50"
+                        : "bg-amber-50"
                     }`}
                   >
                     <div
                       className={`mb-0.5 ${
                         item.margin >= 0
-                          ? "text-green-700 dark:text-green-300"
-                          : "text-amber-700 dark:text-amber-300"
+                          ? "text-green-700"
+                          : "text-amber-700"
                       }`}
                     >
                       Margin
@@ -378,8 +378,8 @@ export default function CostBreakdown() {
                     <div
                       className={`font-semibold ${
                         item.margin >= 0
-                          ? "text-green-900 dark:text-green-100"
-                          : "text-amber-900 dark:text-amber-100"
+                          ? "text-green-900"
+                          : "text-amber-900"
                       }`}
                     >
                       {formatCurrency(item.margin)}
@@ -388,15 +388,15 @@ export default function CostBreakdown() {
                   <div
                     className={`flex-1 p-2 rounded-lg ${
                       item.margin >= 0
-                        ? "bg-green-50 dark:bg-green-900/20"
-                        : "bg-amber-50 dark:bg-amber-900/20"
+                        ? "bg-green-50"
+                        : "bg-amber-50"
                     }`}
                   >
                     <div
                       className={`mb-0.5 ${
                         item.margin >= 0
-                          ? "text-green-700 dark:text-green-300"
-                          : "text-amber-700 dark:text-amber-300"
+                          ? "text-green-700"
+                          : "text-amber-700"
                       }`}
                     >
                       Margin %
@@ -404,8 +404,8 @@ export default function CostBreakdown() {
                     <div
                       className={`font-semibold ${
                         item.margin >= 0
-                          ? "text-green-900 dark:text-green-100"
-                          : "text-amber-900 dark:text-amber-100"
+                          ? "text-green-900"
+                          : "text-amber-900"
                       }`}
                     >
                       {item.marginPercentage.toFixed(1)}%
@@ -416,7 +416,7 @@ export default function CostBreakdown() {
 
               {/* Separator between items */}
               {index < items.length - 1 && (
-                <div className="h-px bg-slate-200 dark:bg-slate-800" />
+                <div className="h-px bg-slate-200" />
               )}
             </div>
           ))}
@@ -426,7 +426,7 @@ export default function CostBreakdown() {
         <Button
           variant="outline"
           onClick={addItem}
-          className="w-full flex items-center justify-center gap-2 h-10 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700"
+          className="w-full flex items-center justify-center gap-2 h-10 bg-slate-50 hover:bg-slate-100"
         >
           <Plus className="h-4 w-4" />
           Add Item
@@ -436,32 +436,32 @@ export default function CostBreakdown() {
         {breakdown.totalItemCosts > 0 && (
           <div className="pt-4 space-y-2">
             <div className="flex justify-between items-center">
-              <span className="text-sm text-slate-600 dark:text-slate-400">
+              <span className="text-sm text-slate-600">
                 Total Costs
               </span>
-              <span className="text-base font-semibold text-slate-900 dark:text-slate-100">
+              <span className="text-base font-semibold text-slate-900">
                 {formatCurrency(breakdown.totalItemCosts)}
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-sm text-slate-600 dark:text-slate-400">
+              <span className="text-sm text-slate-600">
                 Total Sales
               </span>
-              <span className="text-base font-semibold text-slate-900 dark:text-slate-100">
+              <span className="text-base font-semibold text-slate-900">
                 {formatCurrency(breakdown.totalSalePrice)}
               </span>
             </div>
-            <div className="h-px bg-slate-200 dark:bg-slate-800" />
+            <div className="h-px bg-slate-200" />
             <div className="flex justify-between items-center">
-              <span className="text-sm font-medium text-slate-900 dark:text-slate-100 flex items-center gap-1">
-                <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" />
+              <span className="text-sm font-medium text-slate-900 flex items-center gap-1">
+                <TrendingUp className="h-4 w-4 text-green-600" />
                 Total Margin
               </span>
               <div className="text-right">
-                <div className="text-lg font-bold text-green-600 dark:text-green-400">
+                <div className="text-lg font-bold text-green-600">
                   {formatCurrency(breakdown.totalMargin)}
                 </div>
-                <div className="text-xs text-slate-600 dark:text-slate-400">
+                <div className="text-xs text-slate-600">
                   {breakdown.totalMarginPercentage.toFixed(1)}% margin
                 </div>
               </div>
@@ -471,7 +471,7 @@ export default function CostBreakdown() {
 
         {/* Save Dialog */}
         <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
-          <DialogContent className="max-w-[90%] rounded-lg bg-white dark:bg-slate-900">
+          <DialogContent className="max-w-[90%] rounded-lg bg-white">
             <DialogHeader>
               <DialogTitle>Save Breakdown</DialogTitle>
             </DialogHeader>
@@ -503,7 +503,7 @@ export default function CostBreakdown() {
 
         {/* Load Dialog */}
         <Dialog open={loadDialogOpen} onOpenChange={setLoadDialogOpen}>
-          <DialogContent className="max-w-[90%] rounded-lg bg-white dark:bg-slate-900">
+          <DialogContent className="max-w-[90%] rounded-lg bg-white">
             <DialogHeader>
               <DialogTitle>Saved Breakdowns</DialogTitle>
             </DialogHeader>
@@ -516,7 +516,7 @@ export default function CostBreakdown() {
                 savedBreakdowns.map((b) => (
                   <div
                     key={b.id}
-                    className="flex items-center justify-between p-3 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors"
+                    className="flex items-center justify-between p-3 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors"
                   >
                     <div className="flex-1 min-w-0 mr-3">
                       <div className="font-medium truncate">{b.name}</div>

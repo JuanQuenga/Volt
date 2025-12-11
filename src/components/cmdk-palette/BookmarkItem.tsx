@@ -18,10 +18,10 @@ export function BookmarkItem({ bookmark, kbdHintAction }: BookmarkItemProps) {
         <BookmarkIcon className="w-4 h-4 text-yellow-500" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+        <p className="text-sm font-medium text-gray-900 truncate">
           {truncateText(bookmark.title, 60)}
         </p>
-        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+        <p className="text-xs text-gray-500 truncate">
           {truncateText(bookmark.url, 80)}
         </p>
       </div>

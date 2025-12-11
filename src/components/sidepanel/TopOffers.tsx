@@ -200,7 +200,7 @@ function TopOfferCalculator() {
               type="text"
               value={projectionAmount}
               onChange={(e) => handleProjectionChange(e.target.value)}
-              className="text-lg h-12 bg-slate-50 dark:bg-slate-800 focus:bg-white dark:focus:bg-slate-900"
+              className="text-lg h-12 bg-slate-50 focus:bg-white"
               placeholder="Enter estimated projection"
             />
           </div>

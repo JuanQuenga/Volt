@@ -14,18 +14,18 @@ export function CSVLinkItem({ link, kbdHintAction }: CSVLinkItemProps) {
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+          <p className="text-sm font-medium text-gray-900 truncate">
             {link.title}
           </p>
           {link.category && (
-            <span className="flex items-center gap-1 text-xs px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300">
+            <span className="flex items-center gap-1 text-xs px-1.5 py-0.5 rounded bg-purple-100 text-purple-700">
               <Folder className="w-3 h-3" />
               {link.category}
             </span>
           )}
         </div>
         {/* Description intentionally hidden per requirements */}
-        <p className="text-xs text-gray-400 dark:text-gray-500 truncate">
+        <p className="text-xs text-gray-400 truncate">
           {link.url}
         </p>
       </div>
