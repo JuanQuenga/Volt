@@ -44,8 +44,8 @@ export const SIDEPANEL_TOOLS: SidepanelToolMetadata[] = [
   },
   {
     id: "top-offers",
-    label: "Top Offers",
-    description: "Open top offers in the sidepanel",
+    label: "Top Offer Calculator",
+    description: "Open top offer calculator in the sidepanel",
     icon: Calculator,
   },
   {

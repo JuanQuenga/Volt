@@ -17,6 +17,9 @@ import {
   RefreshCw,
   Download,
   MousePointerClick,
+  MapPin,
+  Plus,
+  Minus,
 } from "lucide-react";
 import { getBookmarkFolders, BookmarkFolder } from "@/src/utils/bookmarks";
 
@@ -64,6 +67,18 @@ interface CMDKSettings {
   };
   toolbar?: {
     enabled?: boolean;
+  };
+  topOffers?: {
+    customRates?: {
+      standard: {
+        rules: { threshold: number; percentage: number }[];
+        defaultPercentage: number;
+      };
+      premium: {
+        rules: { threshold: number; percentage: number }[];
+        defaultPercentage: number;
+      };
+    };
   };
 }
 
@@ -126,6 +141,31 @@ const DEFAULT_SETTINGS: CMDKSettings = {
   },
   toolbar: {
     enabled: true,
+  },
+  topOffers: {
+    customRates: {
+      standard: {
+        rules: [
+          { threshold: 50, percentage: 0.2 },
+          { threshold: 100, percentage: 0.3 },
+          { threshold: 250, percentage: 0.4 },
+          { threshold: 500, percentage: 0.5 },
+          { threshold: 750, percentage: 0.55 },
+        ],
+        defaultPercentage: 0.65,
+      },
+      premium: {
+        rules: [
+          { threshold: 50, percentage: 0.2 },
+          { threshold: 100, percentage: 0.3 },
+          { threshold: 200, percentage: 0.4 },
+          { threshold: 250, percentage: 0.5 },
+          { threshold: 500, percentage: 0.6 },
+          { threshold: 750, percentage: 0.65 },
+        ],
+        defaultPercentage: 0.75,
+      },
+    },
   },
 };
 
@@ -207,6 +247,10 @@ const mergeSettings = (stored?: Partial<CMDKSettings>): CMDKSettings => {
     toolbar: {
       ...(DEFAULT_SETTINGS.toolbar || {}),
       ...(stored.toolbar || {}),
+    },
+    topOffers: {
+      ...(DEFAULT_SETTINGS.topOffers || {}),
+      ...(stored.topOffers || {}),
     },
   };
 };
@@ -648,6 +692,144 @@ export default function SettingsPage() {
     });
   };
 
+  const handleUpdateRateRule = (
+    type: "standard" | "premium",
+    index: number,
+    field: "threshold" | "percentage",
+    value: number
+  ) => {
+    const currentRates =
+      settings.topOffers?.customRates?.[type] ||
+      DEFAULT_SETTINGS.topOffers!.customRates![type];
+    const newRules = [...currentRates.rules];
+    newRules[index] = { ...newRules[index], [field]: value };
+
+    // Sort rules by threshold to ensure correct logic
+    newRules.sort((a, b) => a.threshold - b.threshold);
+
+    const newSettings = {
+      ...settings,
+      topOffers: {
+        ...settings.topOffers,
+        customRates: {
+          ...(settings.topOffers?.customRates ||
+            DEFAULT_SETTINGS.topOffers!.customRates!),
+          [type]: {
+            ...currentRates,
+            rules: newRules,
+          },
+        },
+      },
+    };
+    setSettings(newSettings);
+
+    // Auto-save
+    chrome.storage.sync.set({ cmdkSettings: newSettings }, () => {
+      setIsSaved(true);
+      setTimeout(() => setIsSaved(false), 2000);
+    });
+  };
+
+  const handleAddRateRule = (type: "standard" | "premium") => {
+    const currentRates =
+      settings.topOffers?.customRates?.[type] ||
+      DEFAULT_SETTINGS.topOffers!.customRates![type];
+
+    // Create a new rule with values based on the last rule or defaults
+    const lastRule = currentRates.rules[currentRates.rules.length - 1];
+    const newRule = lastRule
+      ? { threshold: lastRule.threshold + 100, percentage: lastRule.percentage }
+      : { threshold: 100, percentage: 0.2 };
+
+    const newRules = [...currentRates.rules, newRule];
+
+    const newSettings = {
+      ...settings,
+      topOffers: {
+        ...settings.topOffers,
+        customRates: {
+          ...(settings.topOffers?.customRates ||
+            DEFAULT_SETTINGS.topOffers!.customRates!),
+          [type]: {
+            ...currentRates,
+            rules: newRules,
+          },
+        },
+      },
+    };
+    setSettings(newSettings);
+
+    // Auto-save
+    chrome.storage.sync.set({ cmdkSettings: newSettings }, () => {
+      setIsSaved(true);
+      setTimeout(() => setIsSaved(false), 2000);
+    });
+  };
+
+  const handleRemoveRateRule = (
+    type: "standard" | "premium",
+    index: number
+  ) => {
+    const currentRates =
+      settings.topOffers?.customRates?.[type] ||
+      DEFAULT_SETTINGS.topOffers!.customRates![type];
+    const newRules = [...currentRates.rules];
+    newRules.splice(index, 1);
+
+    const newSettings = {
+      ...settings,
+      topOffers: {
+        ...settings.topOffers,
+        customRates: {
+          ...(settings.topOffers?.customRates ||
+            DEFAULT_SETTINGS.topOffers!.customRates!),
+          [type]: {
+            ...currentRates,
+            rules: newRules,
+          },
+        },
+      },
+    };
+    setSettings(newSettings);
+
+    // Auto-save
+    chrome.storage.sync.set({ cmdkSettings: newSettings }, () => {
+      setIsSaved(true);
+      setTimeout(() => setIsSaved(false), 2000);
+    });
+  };
+
+  const handleUpdateDefaultPercentage = (
+    type: "standard" | "premium",
+    value: number
+  ) => {
+    const currentRates =
+      settings.topOffers?.customRates?.[type] ||
+      DEFAULT_SETTINGS.topOffers!.customRates![type];
+
+    const newSettings = {
+      ...settings,
+      topOffers: {
+        ...settings.topOffers,
+        customRates: {
+          ...(settings.topOffers?.customRates ||
+            DEFAULT_SETTINGS.topOffers!.customRates!),
+          [type]: {
+            ...currentRates,
+            defaultPercentage: value,
+          },
+        },
+      },
+    };
+    setSettings(newSettings);
+
+    // Auto-save
+    chrome.storage.sync.set({ cmdkSettings: newSettings }, () => {
+      setIsSaved(true);
+      setTimeout(() => setIsSaved(false), 2000);
+    });
+  };
+
   const handleCsvUrlChange = (url: string) => {
     const newCsvLinks = {
       ...settings.csvLinks,
@@ -904,6 +1086,13 @@ export default function SettingsPage() {
             >
               <Link2 className="w-4 h-4" />
               Quick Links
+            </a>
+            <a
+              href="#topoffers"
+              className="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg hover:bg-muted/50 transition-colors text-foreground"
+            >
+              <MapPin className="w-4 h-4" />
+              Top Offers
             </a>
           </nav>
 
@@ -1848,6 +2037,260 @@ export default function SettingsPage() {
                           <span className="text-xs font-medium">Done!</span>
                         </div>
                       )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Top Offers Section */}
+          <section id="topoffers" className="scroll-mt-20">
+            <div className="mb-6 flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold mb-2">Top Offers</h2>
+                <p className="text-muted-foreground">
+                  Configure settings for the Top Offers calculator
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  const defaultRates = {
+                    standard: {
+                      rules: [
+                        { threshold: 50, percentage: 0.2 },
+                        { threshold: 100, percentage: 0.3 },
+                        { threshold: 250, percentage: 0.35 },
+                        { threshold: 500, percentage: 0.45 },
+                        { threshold: 750, percentage: 0.5 },
+                      ],
+                      defaultPercentage: 0.6,
+                    },
+                    premium: {
+                      rules: [
+                        { threshold: 50, percentage: 0.2 },
+                        { threshold: 100, percentage: 0.3 },
+                        { threshold: 200, percentage: 0.35 },
+                        { threshold: 250, percentage: 0.45 },
+                        { threshold: 500, percentage: 0.55 },
+                        { threshold: 750, percentage: 0.6 },
+                      ],
+                      defaultPercentage: 0.7,
+                    },
+                  };
+
+                  const newSettings = {
+                    ...settings,
+                    topOffers: {
+                      ...settings.topOffers,
+                      customRates: defaultRates,
+                    },
+                  };
+                  setSettings(newSettings);
+
+                  // Auto-save
+                  chrome.storage.sync.set({ cmdkSettings: newSettings }, () => {
+                    setIsSaved(true);
+                    setTimeout(() => setIsSaved(false), 2000);
+                  });
+                }}
+                className="flex items-center gap-2 px-4 py-2 bg-muted text-foreground hover:bg-muted/80 rounded-lg transition-colors text-sm font-medium"
+              >
+                <RefreshCw className="w-4 h-4" />
+                Reset Rates
+              </button>
+            </div>
+
+            <div className="bg-card rounded-xl border border-border shadow-lg overflow-hidden">
+              <div className="p-8 space-y-8">
+                {/* Standard Rates Editor */}
+                <div>
+                  <h3 className="font-semibold text-lg mb-4">Standard Rates</h3>
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-12 gap-4 text-sm font-medium text-muted-foreground px-2">
+                      <div className="col-span-5">Under Amount ($)</div>
+                      <div className="col-span-5">Percentage (0.1 = 10%)</div>
+                      <div className="col-span-2"></div>
+                    </div>
+                    {(
+                      settings.topOffers?.customRates?.standard.rules ||
+                      DEFAULT_SETTINGS.topOffers!.customRates!.standard.rules
+                    ).map((rule, index) => (
+                      <div
+                        key={index}
+                        className="grid grid-cols-12 gap-4 items-center"
+                      >
+                        <div className="col-span-5">
+                          <input
+                            type="number"
+                            value={rule.threshold}
+                            onChange={(e) =>
+                              handleUpdateRateRule(
+                                "standard",
+                                index,
+                                "threshold",
+                                parseFloat(e.target.value)
+                              )
+                            }
+                            className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                          />
+                        </div>
+                        <div className="col-span-5">
+                          <input
+                            type="number"
+                            step="0.01"
+                            value={rule.percentage}
+                            onChange={(e) =>
+                              handleUpdateRateRule(
+                                "standard",
+                                index,
+                                "percentage",
+                                parseFloat(e.target.value)
+                              )
+                            }
+                            className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                          />
+                        </div>
+                        <div className="col-span-2 flex justify-end">
+                          <button
+                            onClick={() =>
+                              handleRemoveRateRule("standard", index)
+                            }
+                            className="p-2 text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                    <div className="grid grid-cols-12 gap-4 items-center pt-2">
+                      <div className="col-span-5 text-sm font-medium pl-2">
+                        Everything else
+                      </div>
+                      <div className="col-span-5">
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={
+                            settings.topOffers?.customRates?.standard
+                              .defaultPercentage ?? 0.65
+                          }
+                          onChange={(e) =>
+                            handleUpdateDefaultPercentage(
+                              "standard",
+                              parseFloat(e.target.value)
+                            )
+                          }
+                          className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                        />
+                      </div>
+                      <div className="col-span-2"></div>
+                    </div>
+                    <div className="pt-2">
+                      <button
+                        onClick={() => handleAddRateRule("standard")}
+                        className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-primary hover:bg-primary/10 rounded-lg transition-colors"
+                      >
+                        <Plus className="w-4 h-4" />
+                        Add Rule
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border-t border-border" />
+
+                {/* Premium Rates Editor */}
+                <div>
+                  <h3 className="font-semibold text-lg mb-4">Premium Rates</h3>
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-12 gap-4 text-sm font-medium text-muted-foreground px-2">
+                      <div className="col-span-5">Under Amount ($)</div>
+                      <div className="col-span-5">Percentage (0.1 = 10%)</div>
+                      <div className="col-span-2"></div>
+                    </div>
+                    {(
+                      settings.topOffers?.customRates?.premium.rules ||
+                      DEFAULT_SETTINGS.topOffers!.customRates!.premium.rules
+                    ).map((rule, index) => (
+                      <div
+                        key={index}
+                        className="grid grid-cols-12 gap-4 items-center"
+                      >
+                        <div className="col-span-5">
+                          <input
+                            type="number"
+                            value={rule.threshold}
+                            onChange={(e) =>
+                              handleUpdateRateRule(
+                                "premium",
+                                index,
+                                "threshold",
+                                parseFloat(e.target.value)
+                              )
+                            }
+                            className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                          />
+                        </div>
+                        <div className="col-span-5">
+                          <input
+                            type="number"
+                            step="0.01"
+                            value={rule.percentage}
+                            onChange={(e) =>
+                              handleUpdateRateRule(
+                                "premium",
+                                index,
+                                "percentage",
+                                parseFloat(e.target.value)
+                              )
+                            }
+                            className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                          />
+                        </div>
+                        <div className="col-span-2 flex justify-end">
+                          <button
+                            onClick={() =>
+                              handleRemoveRateRule("premium", index)
+                            }
+                            className="p-2 text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                    <div className="grid grid-cols-12 gap-4 items-center pt-2">
+                      <div className="col-span-5 text-sm font-medium pl-2">
+                        Everything else
+                      </div>
+                      <div className="col-span-5">
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={
+                            settings.topOffers?.customRates?.premium
+                              .defaultPercentage ?? 0.75
+                          }
+                          onChange={(e) =>
+                            handleUpdateDefaultPercentage(
+                              "premium",
+                              parseFloat(e.target.value)
+                            )
+                          }
+                          className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                        />
+                      </div>
+                      <div className="col-span-2"></div>
+                    </div>
+                    <div className="pt-2">
+                      <button
+                        onClick={() => handleAddRateRule("premium")}
+                        className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-primary hover:bg-primary/10 rounded-lg transition-colors"
+                      >
+                        <Plus className="w-4 h-4" />
+                        Add Rule
+                      </button>
                     </div>
                   </div>
                 </div>

@@ -1,17 +1,9 @@
+/* global chrome */
 "use client";
 
 import { useState, useEffect } from "react";
 import { Input } from "../ui/input";
-import { Button } from "../ui/button";
-import { Check, Calculator, Save, RotateCcw, Trash2 } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "../ui/dialog";
-import { Label } from "../ui/label";
+import { Check, Settings } from "lucide-react";
 import {
   Accordion,
   AccordionContent,
@@ -20,11 +12,20 @@ import {
 } from "../ui/accordion";
 import SidepanelLayout from "./SidepanelLayout";
 
-interface SavedTopOffer {
-  id: string;
-  name: string;
-  timestamp: number;
-  projectionAmount: string;
+interface RateRule {
+  threshold: number;
+  percentage: number;
+}
+
+interface CustomRates {
+  standard: {
+    rules: RateRule[];
+    defaultPercentage: number;
+  };
+  premium: {
+    rules: RateRule[];
+    defaultPercentage: number;
+  };
 }
 
 // Helper function to implement FLOOR functionality
@@ -41,109 +42,122 @@ function formatCurrency(value: number): string {
 }
 
 // Top Offer calculation logic
-function calculateTopOffer(projection: number): number {
+function calculateTopOffer(
+  projection: number,
+  customRates?: CustomRates
+): number {
+  if (customRates) {
+    for (const rule of customRates.standard.rules) {
+      if (projection < rule.threshold) {
+        return floorToMultiple(projection * rule.percentage, 5);
+      }
+    }
+    return floorToMultiple(
+      projection * customRates.standard.defaultPercentage,
+      5
+    );
+  }
+
+  // Standard Logic
   if (projection < 50) {
     return floorToMultiple(projection * 0.2, 5);
   } else if (projection < 100) {
     return floorToMultiple(projection * 0.3, 5);
   } else if (projection < 250) {
-    return floorToMultiple(projection * 0.4, 5);
+    return floorToMultiple(projection * 0.35, 5);
   } else if (projection < 500) {
-    return floorToMultiple(projection * 0.5, 5);
+    return floorToMultiple(projection * 0.45, 5);
   } else if (projection < 750) {
-    return floorToMultiple(projection * 0.55, 5);
+    return floorToMultiple(projection * 0.5, 5);
   } else {
-    return floorToMultiple(projection * 0.65, 5);
+    return floorToMultiple(projection * 0.6, 5);
   }
 }
 
 // Premium Top Offer calculation logic
-function calculateTopOfferPremium(projection: number): number {
+function calculateTopOfferPremium(
+  projection: number,
+  customRates?: CustomRates
+): number {
+  if (customRates) {
+    for (const rule of customRates.premium.rules) {
+      if (projection < rule.threshold) {
+        return floorToMultiple(projection * rule.percentage, 5);
+      }
+    }
+    return floorToMultiple(
+      projection * customRates.premium.defaultPercentage,
+      5
+    );
+  }
+
+  // Standard Logic
   if (projection < 50) {
     return floorToMultiple(projection * 0.2, 5);
   } else if (projection < 100) {
     return floorToMultiple(projection * 0.3, 5);
   } else if (projection < 200) {
-    return floorToMultiple(projection * 0.4, 5);
+    return floorToMultiple(projection * 0.35, 5);
   } else if (projection < 250) {
-    return floorToMultiple(projection * 0.5, 5);
+    return floorToMultiple(projection * 0.45, 5);
   } else if (projection < 500) {
-    return floorToMultiple(projection * 0.6, 5);
+    return floorToMultiple(projection * 0.55, 5);
   } else if (projection < 750) {
-    return floorToMultiple(projection * 0.65, 5);
+    return floorToMultiple(projection * 0.6, 5);
   } else {
-    return floorToMultiple(projection * 0.75, 5);
+    return floorToMultiple(projection * 0.7, 5);
   }
 }
 
 // Top Offer Calculator Component
 function TopOfferCalculator() {
   const [projectionAmount, setProjectionAmount] = useState("");
+  const [customRates, setCustomRates] = useState<CustomRates | undefined>(
+    undefined
+  );
   const [results, setResults] = useState({
     topOffer: 0,
     topOfferPremium: 0,
     topOfferCheckout: 0,
   });
   const [copied, setCopied] = useState<string | null>(null);
-  
-  // Saved functionality state
-  const [savedOffers, setSavedOffers] = useState<SavedTopOffer[]>([]);
-  const [saveDialogOpen, setSaveDialogOpen] = useState(false);
-  const [saveName, setSaveName] = useState("");
 
-  // Load saved offers from storage on mount
+  // Load settings from storage on mount
   useEffect(() => {
     if (typeof chrome !== "undefined" && chrome.storage) {
-      chrome.storage.local.get(["scout_top_offers"], (result) => {
-        if (result.scout_top_offers) {
-          setSavedOffers(result.scout_top_offers);
+      // Load settings
+      chrome.storage.sync.get(["cmdkSettings"], (result) => {
+        if (result.cmdkSettings?.topOffers?.customRates) {
+          setCustomRates(result.cmdkSettings.topOffers.customRates);
         }
       });
+
+      // Listen for changes
+      const handleStorageChange = (
+        changes: { [key: string]: chrome.storage.StorageChange },
+        areaName: string
+      ) => {
+        if (areaName === "sync" && changes.cmdkSettings) {
+          const newSettings = changes.cmdkSettings.newValue;
+          if (newSettings?.topOffers?.customRates) {
+            setCustomRates(newSettings.topOffers.customRates);
+          }
+        }
+      };
+
+      chrome.storage.onChanged.addListener(handleStorageChange);
+      return () => {
+        chrome.storage.onChanged.removeListener(handleStorageChange);
+      };
     }
   }, []);
 
-  const saveOffer = () => {
-    if (!saveName.trim()) return;
-
-    const newOffer: SavedTopOffer = {
-      id: Date.now().toString(),
-      name: saveName.trim(),
-      timestamp: Date.now(),
-      projectionAmount,
-    };
-
-    const updatedOffers = [...savedOffers, newOffer];
-    setSavedOffers(updatedOffers);
-
-    if (typeof chrome !== "undefined" && chrome.storage) {
-      chrome.storage.local.set({ scout_top_offers: updatedOffers });
+  // Recalculate when custom rates changes
+  useEffect(() => {
+    if (projectionAmount) {
+      handleProjectionChange(projectionAmount);
     }
-
-    setSaveName("");
-    setSaveDialogOpen(false);
-  };
-
-  const loadOffer = (offer: SavedTopOffer) => {
-    handleProjectionChange(offer.projectionAmount);
-  };
-
-  const deleteOffer = (id: string) => {
-    const updatedOffers = savedOffers.filter((o) => o.id !== id);
-    setSavedOffers(updatedOffers);
-
-    if (typeof chrome !== "undefined" && chrome.storage) {
-      chrome.storage.local.set({ scout_top_offers: updatedOffers });
-    }
-  };
-
-  const clearCurrent = () => {
-    setProjectionAmount("");
-    setResults({
-      topOffer: 0,
-      topOfferPremium: 0,
-      topOfferCheckout: 0,
-    });
-  };
+  }, [customRates]);
 
   const handleCopy = (amount: number, id: string) => {
     navigator.clipboard.writeText(amount.toString());
@@ -157,9 +171,9 @@ function TopOfferCalculator() {
 
     // Auto-calculate when input changes
     const projection = parseFloat(numericValue) || 0;
-    const topOffer = calculateTopOffer(projection);
-    const topOfferPremium = calculateTopOfferPremium(projection);
-    const topOfferCheckout = floorToMultiple(projection * 0.75, 5);
+    const topOffer = calculateTopOffer(projection, customRates);
+    const topOfferPremium = calculateTopOfferPremium(projection, customRates);
+    const topOfferCheckout = floorToMultiple(projection * 0.8, 5);
 
     setResults({
       topOffer,
@@ -168,39 +182,18 @@ function TopOfferCalculator() {
     });
   };
 
+  const openSettings = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.openOptionsPage) {
+      chrome.runtime.openOptionsPage();
+    } else {
+       window.open(chrome.runtime.getURL("/options.html"));
+    }
+  };
+
   return (
     <SidepanelLayout>
       <div className="p-4 space-y-4">
-        {/* Toolbar */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-md">
-              <Calculator className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-            </div>
-            <span className="font-medium text-sm">Calculator</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setSaveDialogOpen(true)}
-              className="h-10 w-10 p-0 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
-              title="Save Offer"
-            >
-              <Save className="h-6 w-6" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={clearCurrent}
-              className="h-10 w-10 p-0 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
-              title="Clear Form"
-            >
-              <RotateCcw className="h-6 w-6" />
-            </Button>
-          </div>
-        </div>
-
         <div className="space-y-4">
           <div className="space-y-3">
             <Input
@@ -216,9 +209,18 @@ function TopOfferCalculator() {
           <div className="space-y-4">
             <Accordion type="single" collapsible className="w-full">
               <AccordionItem value="info" className="border-none">
-                <AccordionTrigger className="py-2 text-sm text-muted-foreground hover:no-underline justify-start gap-2">
-                  <span>How offers are calculated</span>
-                </AccordionTrigger>
+                <div className="flex items-center justify-between w-full">
+                  <AccordionTrigger className="py-2 text-sm text-muted-foreground hover:no-underline justify-start gap-2 flex-1">
+                    <span>How offers are calculated</span>
+                  </AccordionTrigger>
+                  <button
+                    onClick={openSettings}
+                    className="p-1.5 text-muted-foreground hover:text-foreground rounded-md hover:bg-muted transition-colors"
+                    title="Open Settings"
+                  >
+                    <Settings className="h-4 w-4" />
+                  </button>
+                </div>
                 <AccordionContent>
                   <div className="space-y-4 text-sm text-muted-foreground pt-2">
                     <div>
@@ -230,24 +232,54 @@ function TopOfferCalculator() {
                         rounded down to the nearest $5.
                       </p>
                       <ul className="list-disc list-inside ml-2 space-y-0.5 text-xs">
-                        <li>
-                          Under $50: <strong>20%</strong>
-                        </li>
-                        <li>
-                          $50–$99.99: <strong>30%</strong>
-                        </li>
-                        <li>
-                          $100–$249.99: <strong>40%</strong>
-                        </li>
-                        <li>
-                          $250–$499.99: <strong>50%</strong>
-                        </li>
-                        <li>
-                          $500–$749.99: <strong>55%</strong>
-                        </li>
-                        <li>
-                          $750+: <strong>65%</strong>
-                        </li>
+                        {customRates ? (
+                          <>
+                            {customRates.standard.rules.map((rule, i) => (
+                              <li key={i}>
+                                Under ${rule.threshold}:{" "}
+                                <strong>
+                                  {Math.round(rule.percentage * 100)}%
+                                </strong>
+                              </li>
+                            ))}
+                            <li>
+                              $
+                              {
+                                customRates.standard.rules[
+                                  customRates.standard.rules.length - 1
+                                ]?.threshold
+                              }
+                              +:{" "}
+                              <strong>
+                                {Math.round(
+                                  customRates.standard.defaultPercentage * 100
+                                )}
+                                %
+                              </strong>
+                            </li>
+                          </>
+                        ) : (
+                          <>
+                            <li>
+                              Under $50: <strong>20%</strong>
+                            </li>
+                            <li>
+                              $50–$99.99: <strong>30%</strong>
+                            </li>
+                            <li>
+                              $100–$249.99: <strong>35%</strong>
+                            </li>
+                            <li>
+                              $250–$499.99: <strong>45%</strong>
+                            </li>
+                            <li>
+                              $500–$749.99: <strong>50%</strong>
+                            </li>
+                            <li>
+                              $750+: <strong>60%</strong>
+                            </li>
+                          </>
+                        )}
                       </ul>
                     </div>
 
@@ -266,7 +298,7 @@ function TopOfferCalculator() {
                         Top Offer (Checkout)
                       </h6>
                       <p>
-                        Always <strong>75%</strong> of projection, rounded down
+                        Always <strong>80%</strong> of projection, rounded down
                         to the nearest $5. Highest offer amount.
                       </p>
                     </div>
@@ -341,75 +373,6 @@ function TopOfferCalculator() {
             </div>
           </div>
         </div>
-
-        {/* Saved Offers List */}
-        {savedOffers.length > 0 && (
-          <div className="space-y-3 pt-4 border-t border-slate-200 dark:border-slate-800">
-            <h3 className="font-semibold text-sm text-slate-900 dark:text-slate-100">
-              Saved Offers
-            </h3>
-            <div className="space-y-2">
-              {savedOffers.map((o) => (
-                <div
-                  key={o.id}
-                  className="flex items-center justify-between p-3 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors cursor-pointer group"
-                  onClick={() => loadOffer(o)}
-                >
-                  <div className="flex-1 min-w-0 mr-3">
-                    <div className="font-medium truncate text-sm">{o.name}</div>
-                    <div className="text-xs text-slate-500">
-                      {new Date(o.timestamp).toLocaleDateString()} •{" "}
-                      ${o.projectionAmount}
-                    </div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      deleteOffer(o.id);
-                    }}
-                    className="h-8 w-8 p-0 text-slate-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Save Dialog */}
-        <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
-          <DialogContent className="max-w-[90%] rounded-lg bg-white dark:bg-slate-900">
-            <DialogHeader>
-              <DialogTitle>Save Offer</DialogTitle>
-            </DialogHeader>
-            <div className="py-4 space-y-2">
-              <Label htmlFor="name">Name</Label>
-              <Input
-                id="name"
-                value={saveName}
-                onChange={(e) => setSaveName(e.target.value)}
-                placeholder="Enter a name for this offer"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") saveOffer();
-                }}
-              />
-            </div>
-            <DialogFooter className="gap-2 sm:gap-0">
-              <Button onClick={saveOffer} disabled={!saveName.trim()}>
-                Save
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => setSaveDialogOpen(false)}
-              >
-                Cancel
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
       </div>
     </SidepanelLayout>
   );
